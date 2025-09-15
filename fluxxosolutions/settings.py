@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import dj_database_url  # Certifique-se de instalar esse pacote
 
 # Caminho base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -56,11 +55,12 @@ WSGI_APPLICATION = 'fluxxosolutions.wsgi.application'
 
 # Banco de dados - PostgreSQL via variável DATABASE_URL ou fallback para SQLite
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
 
 # Validação de senha
 AUTH_PASSWORD_VALIDATORS = [
