@@ -1,0 +1,14 @@
+# Ignorar cache do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar arquivos de banco de dados SQLite
+*.sqlite3
+
+# Ignorar arquivos de ambiente
+.env
+
+# Ignorar arquivos estáticos compilados
+staticfiles/
