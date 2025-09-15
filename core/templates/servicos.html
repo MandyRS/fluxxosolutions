@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7QCLW30G48"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-7QCLW30G48');
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fluxxo Soluções - Serviços</title>
+  <link rel="stylesheet" href="../static/servico.css">
+</head>
+<body>
+  <header>
+    <div class="navbar">
+      <div class="logo">
+        <a href="/" style="color: white; text-decoration: none; font-weight: bold;">Fluxxo Soluções</a>
+      </div>
+      <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+      <nav>
+        <ul id="menu">
+          <li><a href="/">Home</a></li>
+          <li><a href="/servicos/">Serviços</a></li>
+          <li><a href="/blog/">Blog</a></li>
+          <li><a href="/sobre/">Sobre Nós</a></li>
+          <li><a href="/contato/">Contato</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+  <section class="servicos">
+    <h2>O que fazemos por você?</h2>
+    <p class="subtitulo">Soluções digitais que transformam sua operação.</p>
+
+    <div class="grid-cards">
+      <div class="card">
+        <img src="../static/img/servicos-planilha.png" alt="Serviços Planilhas">
+        <h3>Planilhas Personalizadas</h3>
+        <p>Automatize seus controles com Excel ou Google Sheets. Dashboards, relatórios e alertas em tempo real.</p>
+        <a href="https://wa.me/83921457757?text=Olá%2C%20gostaria%20de%20fazer%20um%20orçamento%20de%20uma%20planilhas!" class="btn">Quero uma planilha</a>
+      </div>
+
+      <div class="card">
+        <img src="../static/img/sistema.png" alt="Ícone Sistemas">
+        <h3>Sistemas sob Medida</h3>
+        <p>Desenvolvemos sistemas web adaptados aos seus processos. Organize, controle e escale com tecnologia.</p>
+        <a href="https://wa.me/83921457757?text=Olá%2C%20gostaria%20de%20fazer%20um%20orçamento%20de%20um%20sistema!" class="btn">Solicitar sistema</a>
+      </div>
+
+      <div class="card">
+        <img src="../static/img/site.png" alt="Ícone Sites">
+        <h3>Sites Profissionais</h3>
+        <p>Criação de sites modernos, responsivos, otimizados para Google e com alta conversão.</p>
+        <a href="https://wa.me/83921457757?text=Olá%2C%20gostaria%20de%20fazer%20um%20orçamento%20de%20um%20site!" class="btn">Solicitar Site</a>
+      </div>
+
+      <div class="card">
+        <img src="../static/img/servico-consultoria.png" alt="Ícone Consultoria">
+        <h3>Consultoria Tecnológica</h3>
+        <p>Análise dos seus processos com foco em produtividade, automação e redução de custos.</p>
+        <a href="https://wa.me/83921457757?text=Olá%2C%20gostaria%20de%20saber%20mais%20sobre%20a%20consultoria!" class="btn">Fale com um especialista</a>
+      </div>
+    </div>
+
+  
+  </section>
+</main>
+
+
+  <footer>
+    &copy; 2025 Fluxxo Soluções - Todos os direitos reservados
+  </footer>
+
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <script>
+   $(document).ready(function() {
+     $(".servicos").slideDown(1000);
+ });
+ function toggleMenu() {
+      const menu = document.getElementById("menu");
+      menu.classList.toggle("show");
+    }
+
+  </script>
+</body>
+</html>

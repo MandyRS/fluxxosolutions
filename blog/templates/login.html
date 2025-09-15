@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Fluxxo Soluções</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f8f9fc;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: linear-gradient(to right, #0052cc, #011839);
+      color: white;
+      padding: 1.4rem 1.5rem;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    main {
+      max-width: 400px;
+      margin: 3rem auto;
+      padding: 2.5rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      text-align: center;
+      color: #003d99;
+      margin-bottom: 2rem;
+      font-size: 1.5rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    label {
+      font-weight: bold;
+      color: #0052cc;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+
+    input {
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      background-color: #f9f9f9;
+      width: 95%;
+    }
+
+    button {
+      background-color: #003d99;
+      color: white;
+      padding: 0.9rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #001a4d;
+    }
+
+    .error {
+      color: red;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .extra-links {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .extra-links a {
+      text-decoration: none;
+      color: #0052cc;
+      font-weight: bold;
+    }
+
+    .extra-links a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Fluxxo Solutions</h1>
+  </header>
+
+  <main>
+    <h2>Bem-vindo de volta</h2>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div>
+        <label for="id_username">Usuário</label>
+        {{ form.username }}
+      </div>
+
+      <div>
+        <label for="id_password">Senha</label>
+        {{ form.password }}
+      </div>
+
+      <button type="submit">Entrar</button>
+    </form>
+
+  </main>
+</body>
+</html>

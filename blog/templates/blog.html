@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7QCLW30G48"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-7QCLW30G48');
+</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blog - Fluxxo Soluções</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    /* ... [SEU CSS AQUI - inalterado] ... */
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+
+    
+    body {
+      font-family: "Segoe UI",  sans-serif;
+      background-color: #f8f9fc;
+      font-size: 16px;
+      color: #333;
+      
+    }
+
+    header {
+      background: linear-gradient(to right, #0052cc, #011839);
+      padding: 1rem 1.5rem;
+    }
+
+    .navbar {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+    }
+
+    nav {
+      flex-grow: 1;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+      justify-content: flex-end;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav ul li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav ul li a:hover {
+      color: #cce0ff;
+    }
+
+    .menu-toggle {
+      display: none;
+      font-size: 1.8rem;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .menu-toggle {
+        display: block;
+      }
+      .logo{
+        display: none;
+      }
+
+      nav ul {
+        flex-direction: column;
+        width: 100%;
+        margin-top: 1rem;
+        display: none;
+        padding: 1rem;
+        border-radius: 8px;
+      }
+
+      nav ul.show {
+        display: flex;
+      }
+
+      nav ul li {
+        text-align: center;
+      }
+    }
+    main {
+      padding: 2rem 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      min-height: 80vh;
+    }
+
+    h1 {
+      text-align: center;
+      color: #003d99;
+      margin-bottom: 2rem;
+    }
+
+    .btn-novo-post {
+      display: inline-block;
+      background-color: #003d99;
+      color: #fff;
+      padding: 0.6rem 1.2rem;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-bottom: 2rem;
+    }
+
+    .btn-novo-post:hover {
+      background-color: #001a4d;
+    }
+
+    .blog-grid {
+      
+      display: none;
+      display: grid;
+      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .post {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      overflow: hidden;
+      transition: transform 0.3s ease;
+    }
+
+    .post:hover {
+      transform: translateY(-5px);
+    }
+
+    .post img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .post-content {
+      padding: 1rem;
+    }
+
+    .post-content h2 {
+      color: #0052cc;
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .post-content p {
+      font-size: 1rem;
+      color: #555;
+    }
+
+    .post-content a {
+      display: inline-block;
+      margin-top: 1rem;
+      text-decoration: none;
+      color: #003d99;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    .post-content a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      background: linear-gradient(to right, #003d99, #001a4d);
+      color: white;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+  <div class="navbar">
+      <div class="logo">
+        <a href="/" style="color: white; text-decoration: none; font-weight: bold;">Fluxxo Soluções</a>
+      </div>
+      <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+  <nav>
+    <ul id="menu">
+      <li><a href="/">Home</a></li>
+      <li><a href="/servicos/">Serviços</a></li>
+      <li><a href="/blog/">Blog</a></li>
+      <li><a href="/sobre/">Sobre Nós</a></li>
+      <li><a href="/contato/">Contato</a></li>
+
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'logout' %}">Sair</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}">Entrar</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+</header>
+
+
+  <main>
+    <h1>Bem vindo ao nosso mundo!</h1>
+
+    {% if user.is_authenticated %}
+      <a class="btn-novo-post" href="{% url 'post_create' %}">+ Novo Post</a>
+    {% endif %}
+
+    <div class="blog-grid">
+      {% for post in posts %}
+        <div class="post">
+          {% if post.imagem %}
+            <img src="{{ post.imagem.url }}" alt="Imagem de {{ post.titulo }}">
+          {% endif %}
+          <div class="post-content">
+            <h2>{{ post.titulo }}</h2>
+            <p>{{ post.conteudo|truncatewords:25 }}</p>
+            <a href="{% url 'post_detail' post.slug %}">Leia mais →</a>
+
+            {% if user == post.autor %}
+              <div style="margin-top: 0.5rem; font-size: 0.9rem;">
+                <a href="{% url 'post_edit' post.slug %}">Editar</a> |
+                <a href="{% url 'post_delete' post.slug %}">Excluir</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <p style="text-align: center;">Nenhum post publicado ainda.</p>
+      {% endfor %}
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 Fluxxo Soluções - Todos os direitos reservados
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(".blog-grid").fadeIn(1000); // animação ao aparecer os posts
+    function toggleMenu() {
+      const menu = document.getElementById("menu");
+      menu.classList.toggle("show");
+    }
+  </script>
+</body>
+</html>

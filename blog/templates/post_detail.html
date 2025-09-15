@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7QCLW30G48"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-7QCLW30G48');
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ post.titulo }} - Fluxxo Soluções</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f8f9fc;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(to right, #0052cc, #011839);
+      color: #fff;
+      padding: 1rem 1.5rem;
+      text-align: center;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      color: #ffffff;
+      margin-bottom: 1rem;
+    }
+
+    .post-meta {
+      font-size: 0.9rem;
+      color: #777;
+      margin-bottom: 1.5rem;
+    }
+
+    .post-image {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 1.5rem;
+      border-radius: 5px;
+    }
+
+    .conteudo {
+      line-height: 1.7;
+      font-size: 1.1rem;
+      color: #444;
+      white-space: pre-line;
+    }
+
+    .voltar {
+      display: inline-block;
+      margin-top: 2rem;
+      color: #003d99;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .voltar:hover {
+      text-decoration: underline;
+    }
+
+    .acoes {
+      margin-top: 2rem;
+    }
+
+    .acoes a {
+      margin-right: 1rem;
+      text-decoration: none;
+      color: #0052cc;
+      font-weight: bold;
+    }
+
+    .acoes a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>{{ post.titulo }}</h1>
+  </header>
+
+  <main>
+    <div class="post-meta">
+      Publicado por {{ post.autor.username }} em {{ post.data_publicacao|date:"d/m/Y H:i" }}
+    </div>
+
+    {% if post.imagem %}
+      <img src="{{ post.imagem.url }}" alt="{{ post.titulo }}" class="post-image">
+    {% endif %}
+
+    <div class="conteudo">
+      {{ post.conteudo }}
+    </div>
+
+    {% if post.arquivo %}
+      <p><strong>Download:</strong> <a href="{{ post.arquivo.url }}">{{ post.arquivo.name }}</a>
+</p>
+    {% endif %}
+
+    {% if user == post.autor %}
+      <div class="acoes">
+        <a href="{% url 'post_edit' post.slug %}">Editar</a>
+        <a href="{% url 'post_delete' post.slug %}">Excluir</a>
+      </div>
+    {% endif %}
+
+    <a class="voltar" href="{% url 'blog' %}">← Voltar para o blog</a>
+  </main>
+</body>
+</html>

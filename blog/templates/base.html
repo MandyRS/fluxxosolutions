@@ -1,0 +1,13 @@
+<header>
+  <nav>
+    <ul>
+      <li><a href="{% url 'blog' %}">Blog</a></li>
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'post_create' %}">Novo Post</a></li>
+        <li><a href="{% url 'logout' %}">Sair</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}">Login</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+</header>
