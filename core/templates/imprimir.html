@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Orçamento #{{ orcamento.numero }}</h1>
+<p><strong>Cliente:</strong> {{ orcamento.cliente.razao_social }}</p>
+<p><strong>Data:</strong> {{ orcamento.criado_em|date:"d/m/Y" }}</p>
+
+<table border="1" width="100%">
+<thead>
+<tr>
+    <th>Produto</th>
+    <th>Serviço</th>
+    <th>Quantidade</th>
+    <th>Preço Unit.</th>
+    <th>Total</th>
+</tr>
+</thead>
+<tbody>
+    {% for item in orcamento.itens.all %}
+    <tr>
+        <td>{{ item.produto.nome if item.produto else "" }}</td>
+        <td>{{ item.servico.nome if item.servico else "" }}</td>
+        <td>{{ item.quantidade }}</td>
+        <td>{{ item.preco_unitario|floatformat:2 }}</td>
+        <td>{{ item.total|floatformat:2 }}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+
+<p><strong>Subtotal:</strong> {{ orcamento.subtotal|floatformat:2 }}</p>
+<p><strong>Desconto:</strong> {{ orcamento.desconto|floatformat:2 }}</p>
+<p><strong>Total:</strong> {{ orcamento.total|floatformat:2 }}</p>
+
+<button onclick="window.print()">Imprimir</button>
+
+{% endblock %}

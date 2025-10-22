@@ -1,0 +1,14 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h2>Selecione a empresa</h2>
+<form method="post">
+    {% csrf_token %}
+    <select name="empresa_id" class="form-select mb-3">
+        {% for ue in empresas %}
+            <option value="{{ ue.empresa.id }}">{{ ue.empresa.nome }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-success">Acessar</button>
+</form>
+{% endblock %}

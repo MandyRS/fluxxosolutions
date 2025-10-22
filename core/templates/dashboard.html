@@ -1,0 +1,46 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h2>Dashboard - {{ empresa.nome }}</h2>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Clientes</h5>
+                <p class="card-text fs-4">{{ clientes }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Produtos</h5>
+                <p class="card-text fs-4">{{ produtos }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Serviços</h5>
+                <p class="card-text fs-4">{{ servicos }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-dark mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Orçamentos</h5>
+                <p class="card-text fs-4">{{ orcamentos }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if alerta_orcamentos %}
+    <div class="alert alert-danger">
+        <strong>Atenção:</strong> Você possui {{ alerta_orcamentos.count }} orçamentos com previsão de entrega em até 3 dias.
+    </div>
+{% endif %}
+{% endblock %}

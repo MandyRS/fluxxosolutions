@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<h2 class="mb-4">Orçamentos</h2>
+
+<button id="btnCriarOrcamento" class="btn btn-primary mb-3">+ Novo Orçamento</button>
+
+<table class="table table-striped table-hover align-middle" id="tabelaOrcamentos">
+  <thead class="table-light">
+    <tr>
+      <th>Número</th>
+      <th>Cliente</th>
+      <th>Previsão Entrega</th>
+      <th>Solicitante</th>
+      <th>Total</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for orc in orcamentos %}
+    <tr data-id="{{ orc.id }}">
+      <td>{{ orc.numero }}</td>
+      <td>{{ orc.cliente.razao_social }}</td>
+      <td>{{ orc.previsao_entrega }}</td>
+      <td>{{ orc.solicitante }}</td>
+      <td>R$ {{ orc.total|floatformat:2 }}</td>
+      <td>
+        <button class="btn btn-sm btn-info btnEditar" data-id="{{ orc.id }}">Editar</button>
+        <button class="btn btn-sm btn-danger btnExcluir" data-id="{{ orc.id }}">Excluir</button>
+        <a href="{% url 'core:detalhe_orcamento' orc.id %}" class="btn btn-sm btn-secondary">Ver</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6" class="text-center">Nenhum orçamento encontrado.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Modal Criar/Editar -->
+<div class="modal fade" id="modalOrcamento" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <form id="formOrcamento">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Orçamento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="orcamentoId" name="orcamentoId">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Cliente</label>
+              <input type="text" id="clienteInput" class="form-control" autocomplete="off">
+              <input type="hidden" id="clienteId" name="clienteId">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Solicitante</label>
+              <input type="text" id="solicitante" class="form-control">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Previsão de Entrega</label>
+              <input type="date" id="previsao_entrega" class="form-control">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Forma de Pagamento</label>
+              <input type="text" id="forma_pagamento" class="form-control">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Vencimento</label>
+              <input type="date" id="vencimento" class="form-control">
+            </div>
+          </div>
+
+          <hr>
+
+          <h5>Itens do Orçamento</h5>
+          <table class="table table-sm align-middle" id="tabelaItens">
+            <thead class="table-light">
+              <tr>
+                <th>Tipo</th>
+                <th>Produto/Serviço</th>
+                <th>Qtd</th>
+                <th>Valor Unitário</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <button type="button" id="btnAddItem" class="btn btn-sm btn-outline-primary">+ Adicionar Item</button>
+
+          <div class="text-end mt-3">
+            <strong>Total Geral: R$ <span id="totalGeral">0,00</span></strong>
+          </div>
+
+          <hr>
+
+          <div class="mb-3">
+            <label class="form-label">Observação</label>
+            <textarea id="observacao" class="form-control"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+<script>
+$(function(){
+  const modalOrcamento = new bootstrap.Modal(document.getElementById('modalOrcamento'));
+
+  // Autocomplete de cliente
+  $("#clienteInput").autocomplete({
+      source: "{% url 'core:autocomplete_cliente' %}",
+      minLength: 2,
+      select: function(event, ui){
+          $("#clienteInput").val(ui.item.label);
+          $("#clienteId").val(ui.item.id);
+          return false;
+      }
+  });
+
+  // Abrir modal
+  $("#btnCriarOrcamento").click(function(){
+      limparFormulario();
+      modalOrcamento.show();
+  });
+
+  // Adicionar item
+  $("#btnAddItem").click(function(){
+      const linha = `
+        <tr>
+          <td>
+            <select class="form-select tipoItem">
+              <option value="produto">Produto</option>
+              <option value="servico">Serviço</option>
+            </select>
+          </td>
+          <td><input type="text" class="form-control nomeItem" autocomplete="off"></td>
+          <td><input type="number" class="form-control qtdItem" min="1" value="1"></td>
+          <td><input type="number" class="form-control valorItem" step="0.01" value="0.00"></td>
+          <td class="totalItem">R$ 0,00</td>
+          <td><button type="button" class="btn btn-sm btn-danger btnRemoverItem">x</button></td>
+        </tr>`;
+      $("#tabelaItens tbody").append(linha);
+      atualizarAutocompleteItens();
+  });
+
+  // Remover item
+  $(document).on('click', '.btnRemoverItem', function(){
+      $(this).closest('tr').remove();
+      atualizarTotal();
+  });
+
+  // Atualiza total ao mudar quantidade ou valor
+  $(document).on('input', '.qtdItem, .valorItem', atualizarTotal);
+
+  function atualizarAutocompleteItens(){
+      $(".nomeItem").autocomplete({
+          source: "{% url 'core:autocomplete_produto_servico' %}",
+          minLength: 2,
+          select: function(event, ui){
+              $(this).val(ui.item.label);
+              $(this).closest('tr').data('item-id', ui.item.id);
+              $(this).closest('tr').find('.valorItem').val(ui.item.preco);
+              atualizarTotal();
+              return false;
+          }
+      });
+  }
+
+  function atualizarTotal(){
+      let total = 0;
+      $("#tabelaItens tbody tr").each(function(){
+          const qtd = parseFloat($(this).find('.qtdItem').val()) || 0;
+          const valor = parseFloat($(this).find('.valorItem').val()) || 0;
+          const subtotal = qtd * valor;
+          $(this).find('.totalItem').text("R$ " + subtotal.toFixed(2).replace('.', ','));
+          total += subtotal;
+      });
+      $("#totalGeral").text(total.toFixed(2).replace('.', ','));
+  }
+
+  // Salvar orçamento com itens
+  $("#formOrcamento").submit(function(e){
+      e.preventDefault();
+      const id = $("#orcamentoId").val();
+      const url = id ? `/core/orcamentos/${id}/editar/` : `/core/orcamentos/criar/`;
+
+      const itens = [];
+      $("#tabelaItens tbody tr").each(function(){
+          itens.push({
+              tipo: $(this).find('.tipoItem').val(),
+              nome: $(this).find('.nomeItem').val(),
+              id_item: $(this).data('item-id') || null,
+              qtd: $(this).find('.qtdItem').val(),
+              valor: $(this).find('.valorItem').val(),
+          });
+      });
+
+      const data = {
+          cliente: $("#clienteId").val(),
+          solicitante: $("#solicitante").val(),
+          previsao_entrega: $("#previsao_entrega").val(),
+          forma_pagamento: $("#forma_pagamento").val(),
+          vencimento: $("#vencimento").val(),
+          observacao: $("#observacao").val(),
+          itens: JSON.stringify(itens),
+          csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+      };
+
+      $.post(url, data, function(resp){
+          if(resp.status === 'ok'){
+              modalOrcamento.hide();
+              location.reload();
+          } else {
+              alert('Erro ao salvar: ' + JSON.stringify(resp.erros));
+          }
+      });
+  });
+
+  function limparFormulario(){
+      $("#formOrcamento")[0].reset();
+      $("#tabelaItens tbody").empty();
+      $("#orcamentoId").val('');
+      $("#clienteId").val('');
+      $("#totalGeral").text("0,00");
+  }
+});
+</script>
+
+{% endblock %}

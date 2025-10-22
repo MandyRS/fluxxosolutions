@@ -1,0 +1,77 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Novo Orçamento{% endblock %}
+
+{% block content %}
+<h2>Novo Orçamento</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label>Cliente</label>
+        <input type="text" id="cliente-autocomplete" class="form-control" placeholder="Digite o nome do cliente..." autocomplete="off">
+        <input type="hidden" name="cliente" id="cliente-id">
+    </div>
+
+    <div id="dados-cliente" style="display: none;" class="border p-2 mb-3 bg-light">
+        <p><strong>Telefone:</strong> <span id="cliente-telefone"></span></p>
+        <p><strong>Email:</strong> <span id="cliente-email"></span></p>
+        <p><strong>Endereço:</strong> <span id="cliente-endereco"></span></p>
+    </div>
+
+    {{ form.as_p }}
+
+    <hr>
+
+    <h4>Itens</h4>
+    {{ formset.management_form }}
+    {% for form in formset %}
+        <div class="card p-3 mb-2">
+            {{ form.as_p }}
+        </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-success">Salvar Orçamento</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+$(function() {
+    $('#cliente-autocomplete').on('input', function() {
+        let query = $(this).val();
+        if (query.length >= 2) {
+            $.get("{% url 'core:buscar_clientes' %}", {q: query}, function(data) {
+                let suggestions = data.map(c => `<li class="list-group-item" data-id="${c.id}" data-info='${JSON.stringify(c)}'>${c.razao_social}</li>`);
+                $('#autocomplete-list').remove();
+                $('<ul class="list-group position-absolute w-100" id="autocomplete-list"></ul>')
+                    .html(suggestions.join(''))
+                    .insertAfter('#cliente-autocomplete');
+            });
+        }
+    });
+
+    // Seleciona cliente da lista
+    $(document).on('click', '#autocomplete-list li', function() {
+        let cliente = $(this).data('info');
+        $('#cliente-autocomplete').val(cliente.razao_social);
+        $('#cliente-id').val(cliente.id);
+        $('#autocomplete-list').remove();
+
+        $('#cliente-telefone').text(cliente.telefone);
+        $('#cliente-email').text(cliente.email);
+        $('#cliente-endereco').text(`${cliente.endereco} - ${cliente.cidade_uf} - CEP: ${cliente.cep}`);
+        $('#dados-cliente').show();
+    });
+
+    // Fecha sugestão se clicar fora
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#cliente-autocomplete, #autocomplete-list').length) {
+            $('#autocomplete-list').remove();
+        }
+    });
+});
+</script>
+{% endblock %}

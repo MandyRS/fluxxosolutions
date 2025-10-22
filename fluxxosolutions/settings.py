@@ -4,12 +4,16 @@ from pathlib import Path
 # Caminho base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Configurações sensíveis via variáveis de ambiente
-SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-secret-key")
-DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+# Chave secreta do Django (troque em produção)
+SECRET_KEY = 'sua-chave-secreta-aqui'
 
-# Aplicações instaladas
+# Modo de debug (True para desenvolvimento, False em produção)
+DEBUG = True
+
+# Hosts permitidos
+ALLOWED_HOSTS = []
+
+# Aplicativos instalados
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -17,14 +21,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Seus apps aqui:
     'core',
     'blog',
 ]
 
-# Middleware
+# Middleware padrão do Django
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Adicionado para arquivos estáticos
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -35,6 +39,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'fluxxosolutions.urls'
 
+# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -53,17 +58,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'fluxxosolutions.wsgi.application'
 
-# Banco de dados - PostgreSQL via variável DATABASE_URL ou fallback para SQLite
-import dj_database_url  # coloque lá no topo com os imports
-
+# Banco de dados: SQLite local
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
-
-
 
 # Validação de senha
 AUTH_PASSWORD_VALIDATORS = [
@@ -75,22 +76,22 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internacionalização
 LANGUAGE_CODE = 'pt-br'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
+USE_L10N = True
 USE_TZ = True
 
-# Arquivos estáticos (CSS, JS, imagens)
+# Arquivos estáticos
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'core/static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Arquivos de mídia
+# Arquivos de mídia (uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Rota de login
+# Página de login padrão
 LOGIN_URL = 'login'
 
-# ID padrão para chaves primárias
+# Tipo de ID padrão
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
