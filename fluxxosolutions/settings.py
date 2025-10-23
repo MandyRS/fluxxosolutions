@@ -90,8 +90,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Página de login padrão
-LOGIN_URL = 'login'
+LOGIN_URL = 'core:login'
+LOGIN_REDIRECT_URL = 'core:selecionar_empresa'
+LOGOUT_REDIRECT_URL = 'core:login'
 
 # Tipo de ID padrão
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

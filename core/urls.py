@@ -5,14 +5,13 @@ from django.contrib.auth import views as auth_views
 app_name = 'core'
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('dashboard/', views.dashboard, name='dashboard'),
-    path('selecionar-empresa/', views.selecionar_empresa, name='selecionar_empresa'),
-    path('logout/', views.logout_view, name='logout'),
-    path('selecionar-sistema/', views.selecionar_sistema, name='selecionar_sistema'),
-
-    # Login padrão do Django (você pode personalizar depois)
+    
+    path('', views.index, name='index'),  # Página inicial
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
+
+    path('selecionar-empresa/', views.selecionar_empresa, name='selecionar_empresa'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 
     # Clientes / Produtos / Serviços
     path('cliente/criar/', views.criar_cliente_ajax, name='criar_cliente_ajax'),

@@ -45,26 +45,34 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        
-        # Verifica se o usuário e senha estão corretos
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user)  # Faz o login
-            return redirect('index')  # Redireciona para a página inicial
+            login(request, user)
+
+            # 🔹 Depois do login, redireciona para selecionar empresa
+            return redirect('core:selecionar_empresa')
         else:
-            messages.error(request, "Usuário ou senha incorretos")  # Mensagem de erro
+            messages.error(request, "Usuário ou senha incorretos")
 
     return render(request, 'login.html')
 
 
 @login_required
 def selecionar_empresa(request):
-    empresas = UserEmpresa.objects.filter(user=request.user)
-    if request.method == 'POST':
-        request.session['empresa_id'] = request.POST.get('empresa_id')
-        return redirect('core:dashboard')
-    return render(request, 'selecionar_empresa.html', {'empresas': empresas})
+    # Busca as empresas vinculadas ao usuário logado
+    empresas_vinculadas = UserEmpresa.objects.filter(user=request.user)
 
+    if request.method == 'POST':
+        empresa_id = request.POST.get('empresa_id')
+        if empresa_id:
+            # Armazena a empresa escolhida na sessão
+            request.session['empresa_id'] = empresa_id
+            return redirect('core:dashboard')
+
+    return render(request, 'selecionar_empresa.html', {
+    'empresas': empresas_vinculadas
+})
 
 @login_required
 def dashboard(request):

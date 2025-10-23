@@ -3,5 +3,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('core.urls')),  # apontando para as rotas do app core
+    path('', include('core.urls')),  # o próprio core.urls define a rota index
 ]
