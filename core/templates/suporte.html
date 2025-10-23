@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Suporte</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'core:index' %}">Fluxxo Solutions</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:dashboard' %}">Dashboard</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:listar_orcamentos' %}">Orçamentos</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:configuracoes' %}">Configurações</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:suporte' %}">Suporte</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:logout' %}">Sair</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:login' %}">Login</a>
+          </li>
+        {% endif %}
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+  <h2>Suporte</h2>
+  <p>Olá, {{ usuario.username }}! Envie sua solicitação de suporte abaixo.</p>
+
+  <form id="formSuporte" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="modulo" class="form-label">Módulo</label>
+      <select class="form-select" id="modulo" name="modulo" required>
+        <option value="" selected disabled>Selecione um módulo</option>
+        {% for modulo in modulos %}
+          <option value="{{ modulo }}">{{ modulo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="descricao" class="form-label">Descrição</label>
+      <textarea class="form-control" id="descricao" name="descricao" rows="4" placeholder="Descreva seu problema ou dúvida..." required></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="arquivo" class="form-label">Foto ou Vídeo (opcional)</label>
+      <input class="form-control" type="file" id="arquivo" name="arquivo" accept="image/*,video/*" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Enviar para WhatsApp</button>
+  </form>
+
+</div>
+
+<script>
+document.getElementById('formSuporte').addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  const modulo = document.getElementById('modulo').value;
+  const descricao = document.getElementById('descricao').value.trim();
+
+  if (!modulo || !descricao) {
+    alert('Por favor, preencha o módulo e a descrição.');
+    return;
+  }
+
+  // Montar mensagem para o WhatsApp
+  let mensagem = `Olá, suporte da Fluxxo Solutions.%0AMódulo: ${modulo}%0AUsuário: {{ usuario.username }}%0ADescrição:%0A${encodeURIComponent(descricao)}`;
+
+  // NOTA: não é possível enviar arquivo direto pelo link do WhatsApp Web
+  // Para arquivos, você pode instruir o usuário a enviar o arquivo manualmente após abrir o WhatsApp,
+  // ou implementar upload no servidor que envie depois, mas isso complica.
+
+  // Número do WhatsApp do suporte (coloque seu número aqui com DDI e DDD, só números)
+  const numeroWhatsApp = '5511999999999';
+
+  // Abrir link do WhatsApp (web ou app)
+  const url = `https://wa.me/${numeroWhatsApp}?text=${mensagem}`;
+
+  window.open(url, '_blank');
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

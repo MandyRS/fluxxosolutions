@@ -6,13 +6,14 @@ app_name = 'core'
 
 urlpatterns = [
     
-    path('', views.index, name='index'),  # Página inicial
-    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
-
+    path('', views.index, name='index'),
+    path('selecionar-sistema/', views.selecionar_sistema, name='selecionar_sistema'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
     path('selecionar-empresa/', views.selecionar_empresa, name='selecionar_empresa'),
     path('dashboard/', views.dashboard, name='dashboard'),
-
+    path('configuracoes/', views.configuracoes, name='configuracoes'),
+    path('suporte/', views.suporte, name='suporte'),
     # Clientes / Produtos / Serviços
     path('cliente/criar/', views.criar_cliente_ajax, name='criar_cliente_ajax'),
     path('produto/criar/', views.criar_produto_ajax, name='criar_produto_ajax'),

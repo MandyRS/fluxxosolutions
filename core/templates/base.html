@@ -12,7 +12,7 @@
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'core:selecionar_empresa' %}">Empresas</a></li>
+        
             <li class="nav-item"><a class="nav-link" href="{% url 'core:logout' %}">Sair</a></li>
           {% else %}
             <li class="nav-item"><a class="nav-link" href="{% url 'core:login' %}">Login</a></li>

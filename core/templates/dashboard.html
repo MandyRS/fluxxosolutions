@@ -1,46 +1,98 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Fluxxo Solutions</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'core:index' %}">Fluxxo Solutions</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
 
-{% block content %}
-<h2>Dashboard - {{ empresa.nome }}</h2>
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:dashboard' %}">Dashboard</a>
+          </li>
 
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-info mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Clientes</h5>
-                <p class="card-text fs-4">{{ clientes }}</p>
-            </div>
-        </div>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:listar_orcamentos' %}">Orçamentos</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:configuracoes' %}">Configurações</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:suporte' %}">Suporte</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:logout' %}">Sair</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:login' %}">Login</a>
+          </li>
+        {% endif %}
+
+      </ul>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Produtos</h5>
-                <p class="card-text fs-4">{{ produtos }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Serviços</h5>
-                <p class="card-text fs-4">{{ servicos }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-dark mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Orçamentos</h5>
-                <p class="card-text fs-4">{{ orcamentos }}</p>
-            </div>
-        </div>
-    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <h2>Dashboard - {{ empresa.nome }}</h2>
+
+  <div class="row mt-4">
+      <div class="col-md-3">
+          <div class="card text-white bg-info mb-3">
+              <div class="card-body">
+                  <h5 class="card-title">Clientes</h5>
+                  <p class="card-text fs-4">{{ clientes }}</p>
+              </div>
+          </div>
+      </div>
+      <div class="col-md-3">
+          <div class="card text-white bg-success mb-3">
+              <div class="card-body">
+                  <h5 class="card-title">Produtos</h5>
+                  <p class="card-text fs-4">{{ produtos }}</p>
+              </div>
+          </div>
+      </div>
+      <div class="col-md-3">
+          <div class="card text-white bg-warning mb-3">
+              <div class="card-body">
+                  <h5 class="card-title">Serviços</h5>
+                  <p class="card-text fs-4">{{ servicos }}</p>
+              </div>
+          </div>
+      </div>
+      <div class="col-md-3">
+          <div class="card text-white bg-dark mb-3">
+              <div class="card-body">
+                  <h5 class="card-title">Orçamentos</h5>
+                  <p class="card-text fs-4">{{ orcamentos }}</p>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  {% if alerta_orcamentos %}
+      <div class="alert alert-danger">
+          <strong>Atenção:</strong> Você possui {{ alerta_orcamentos.count }} orçamentos com previsão de entrega em até 3 dias.
+      </div>
+  {% endif %}
 </div>
 
-{% if alerta_orcamentos %}
-    <div class="alert alert-danger">
-        <strong>Atenção:</strong> Você possui {{ alerta_orcamentos.count }} orçamentos com previsão de entrega em até 3 dias.
-    </div>
-{% endif %}
-{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

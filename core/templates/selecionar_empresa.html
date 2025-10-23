@@ -4,16 +4,18 @@
   <h3 class="text-center mb-4">Selecione a Empresa</h3>
   <form method="post">
     {% csrf_token %}
-    {% for ue in empresas_vinculadas %}
-  <div class="form-check">
-    <input class="form-check-input" type="radio" name="empresa_id"
-           id="empresa{{ ue.empresa.id }}" value="{{ ue.empresa.id }}" required>
-    <label class="form-check-label" for="empresa{{ ue.empresa.id }}">
-      {{ ue.empresa.nome }}
-    </label>
-  </div>
-{% empty %}
-  <p>Você não está vinculado a nenhuma empresa.</p>
-{% endfor %}
-
+    {% for ue in empresas %}
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="empresa_id"
+               id="empresa{{ ue.empresa.id }}" value="{{ ue.empresa.id }}" required>
+        <label class="form-check-label" for="empresa{{ ue.empresa.id }}">
+          {{ ue.empresa.nome }}
+        </label>
+      </div>
+    {% empty %}
+      <p>Você não está vinculado a nenhuma empresa.</p>
+    {% endfor %}
+    <button type="submit" class="btn btn-info w-100 mt-3">Continuar</button>
+  </form>
+</div>
 {% endblock %}

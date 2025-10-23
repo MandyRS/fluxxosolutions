@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.http import JsonResponse
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from datetime import timedelta
@@ -15,32 +15,35 @@ from .models import (
 )
 from .forms import OrcamentoForm, ItemOrcamentoForm
 
-def selecionar_sistema(request):
-    # Renderiza a página com os cards de sistemas
-    return render(request, 'selecionar_sistema.html')
 
 # -----------------------------
-# Funções auxiliares
-# -----------------------------
-def get_empresa_do_usuario(user):
-    """Retorna a primeira empresa associada ao usuário."""
-    try:
-        return user.userempresa_set.first().empresa
-    except AttributeError:
-        return None
-
-
-# -----------------------------
-# Views básicas
+# INDEX
 # -----------------------------
 def index(request):
     return render(request, 'index.html')
 
 
-def logout_view(request):
-    logout(request)
-    return redirect('core:index')
+# -----------------------------
+# SELECIONAR SISTEMA
+# -----------------------------
+def selecionar_sistema(request):
+    if request.method == 'POST':
+        sistema = request.POST.get('sistema')
 
+        # Exemplo: se o usuário escolheu o sistema de orçamento
+        if sistema == 'orcamento':
+            return redirect('core:login')
+
+        # Caso outros sistemas sejam adicionados depois
+        messages.info(request, "Sistema ainda não disponível.")
+        return redirect('core:selecionar_sistema')
+
+    return render(request, 'selecionar_sistema.html')
+
+
+# -----------------------------
+# LOGIN / LOGOUT
+# -----------------------------
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -49,8 +52,6 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-
-            # 🔹 Depois do login, redireciona para selecionar empresa
             return redirect('core:selecionar_empresa')
         else:
             messages.error(request, "Usuário ou senha incorretos")
@@ -58,6 +59,14 @@ def login_view(request):
     return render(request, 'login.html')
 
 
+def logout_view(request):
+    logout(request)
+    return redirect('core:index')
+
+
+# -----------------------------
+# SELECIONAR EMPRESA
+# -----------------------------
 @login_required
 def selecionar_empresa(request):
     # Busca as empresas vinculadas ao usuário logado
@@ -66,19 +75,28 @@ def selecionar_empresa(request):
     if request.method == 'POST':
         empresa_id = request.POST.get('empresa_id')
         if empresa_id:
-            # Armazena a empresa escolhida na sessão
             request.session['empresa_id'] = empresa_id
-            return redirect('core:dashboard')
+            return redirect('core:dashboard')  # ou para onde quiser depois da escolha
 
     return render(request, 'selecionar_empresa.html', {
-    'empresas': empresas_vinculadas
-})
+        'empresas': empresas_vinculadas  # 👈 nome da variável usada no template
+    })
+
+
+# -----------------------------
+# FUNÇÃO AUXILIAR
+# -----------------------------
+def get_empresa_do_usuario(user):
+    try:
+        return user.userempresa_set.first().empresa
+    except AttributeError:
+        return None
 
 @login_required
 def dashboard(request):
     empresa_id = request.session.get('empresa_id')
     if not empresa_id:
-        return redirect('core:selecionar_empresa')
+        return redirect('selecionar_empresa')
 
     empresa = get_object_or_404(Empresa, id=empresa_id)
 
@@ -224,7 +242,7 @@ def listar_orcamentos(request):
     orcamentos = Orcamento.objects.filter(empresa_id=empresa_id).order_by('-criado_em')
     clientes = Cliente.objects.filter(empresa_id=empresa_id)
 
-    return render(request, 'orcamentos/listar.html', {
+    return render(request, 'orcamentos.html', {
         'orcamentos': orcamentos,
         'clientes': clientes,
     })
@@ -414,3 +432,46 @@ def autocomplete_produto_servico(request):
     ]
 
     return JsonResponse(results, safe=False)
+
+@login_required
+def configuracoes(request):
+    empresa = get_empresa_do_usuario(request.user)
+    if not empresa:
+        # Pode redirecionar ou mostrar erro aqui
+        return redirect('core:index')  # exemplo
+
+    clientes_list = Cliente.objects.filter(empresa=empresa)
+    produtos_list = Produto.objects.filter(empresa=empresa)
+    servicos_list = Servico.objects.filter(empresa=empresa)
+
+    context = {
+        'clientes_list': clientes_list,
+        'produtos_list': produtos_list,
+        'servicos_list': servicos_list,
+    }
+
+    return render(request, 'configuracoes.html', context)
+
+
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def suporte(request):
+    # Lista de módulos para escolher no suporte
+    modulos = [
+        'Financeiro',
+        'Dashboard',
+        'Orçamentos',
+        'Configurações',
+        'Relatórios',
+        'Outro',
+    ]
+
+    context = {
+        'usuario': request.user,
+        'modulos': modulos,
+    }
+
+    return render(request, 'suporte.html', context)
+
+

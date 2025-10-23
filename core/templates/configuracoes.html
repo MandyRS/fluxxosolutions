@@ -1,31 +1,152 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Configurações - {{ empresa.nome }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'core:index' %}">Fluxxo Solutions</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
 
-{% block title %}Configuração{% endblock %}
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:dashboard' %}">Dashboard</a>
+          </li>
 
-{% block content %}
-<h3>Clientes</h3>
-<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalCliente">Novo Cliente</button>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:listar_orcamentos' %}">Orçamentos</a>
+          </li>
 
-<table class="table table-striped" id="tabela-clientes">
-    <thead>
-        <tr>
-            <th>Razão Social</th>
-            <th>Nome Fantasia</th>
-            <th>CPF/CNPJ</th>
-            <th>Telefone</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for cliente in clientes_list %}
-        <tr>
-            <td>{{ cliente.razao_social }}</td>
-            <td>{{ cliente.nome_fantasia }}</td>
-            <td>{{ cliente.cpf_cnpj }}</td>
-            <td>{{ cliente.telefone }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:configuracoes' %}">Configurações</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:suporte' %}">Suporte</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:logout' %}">Sair</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:login' %}">Login</a>
+          </li>
+        {% endif %}
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <h2>Configurações </h2>
+
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" id="configTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="clientes-tab" data-bs-toggle="tab" data-bs-target="#clientes" type="button" role="tab" aria-controls="clientes" aria-selected="true">Clientes</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="produtos-tab" data-bs-toggle="tab" data-bs-target="#produtos" type="button" role="tab" aria-controls="produtos" aria-selected="false">Produtos</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="servicos-tab" data-bs-toggle="tab" data-bs-target="#servicos" type="button" role="tab" aria-controls="servicos" aria-selected="false">Serviços</button>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content mt-3" id="configTabsContent">
+    <!-- Clientes -->
+    <div class="tab-pane fade show active" id="clientes" role="tabpanel" aria-labelledby="clientes-tab">
+      <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalCliente">Novo Cliente</button>
+
+      <table class="table table-striped" id="tabela-clientes">
+          <thead>
+              <tr>
+                  <th>Razão Social</th>
+                  <th>Nome Fantasia</th>
+                  <th>CPF/CNPJ</th>
+                  <th>Telefone</th>
+              </tr>
+          </thead>
+          <tbody>
+              {% for cliente in clientes_list %}
+              <tr>
+                  <td>{{ cliente.razao_social }}</td>
+                  <td>{{ cliente.nome_fantasia }}</td>
+                  <td>{{ cliente.cpf_cnpj }}</td>
+                  <td>{{ cliente.telefone }}</td>
+              </tr>
+              {% endfor %}
+          </tbody>
+      </table>
+    </div>
+
+    <!-- Produtos -->
+    <div class="tab-pane fade" id="produtos" role="tabpanel" aria-labelledby="produtos-tab">
+      <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalProduto">Novo Produto</button>
+
+      <table class="table table-striped" id="tabela-produtos">
+          <thead>
+              <tr>
+                  <th>Código</th>
+                  <th>Nome</th>
+                  <th>Descrição</th>
+                  <th>Preço</th>
+              </tr>
+          </thead>
+          <tbody>
+              {% for produto in produtos_list %}
+              <tr>
+                  <td>{{ produto.codigo }}</td>
+                  <td>{{ produto.nome }}</td>
+                  <td>{{ produto.descricao }}</td>
+                  <td>R$ {{ produto.preco }}</td>
+              </tr>
+              {% endfor %}
+          </tbody>
+      </table>
+    </div>
+
+    <!-- Serviços -->
+    <div class="tab-pane fade" id="servicos" role="tabpanel" aria-labelledby="servicos-tab">
+      <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalServico">Novo Serviço</button>
+
+      <table class="table table-striped" id="tabela-servicos">
+          <thead>
+              <tr>
+                  <th>Código</th>
+                  <th>Nome</th>
+                  <th>Descrição</th>
+                  <th>Preço</th>
+              </tr>
+          </thead>
+          <tbody>
+              {% for servico in servicos_list %}
+              <tr>
+                  <td>{{ servico.codigo }}</td>
+                  <td>{{ servico.nome }}</td>
+                  <td>{{ servico.descricao }}</td>
+                  <td>R$ {{ servico.preco }}</td>
+              </tr>
+              {% endfor %}
+          </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modais continuam os mesmos -->
 
 <!-- Modal Cliente -->
 <div class="modal fade" id="modalCliente" tabindex="-1" aria-labelledby="modalClienteLabel" aria-hidden="true">
@@ -55,32 +176,6 @@
   </div>
 </div>
 
-<hr>
-
-<h3>Produtos</h3>
-<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalProduto">Novo Produto</button>
-
-<table class="table table-striped" id="tabela-produtos">
-    <thead>
-        <tr>
-            <th>Código</th>
-            <th>Nome</th>
-            <th>Descrição</th>
-            <th>Preço</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for produto in produtos_list %}
-        <tr>
-            <td>{{ produto.codigo }}</td>
-            <td>{{ produto.nome }}</td>
-            <td>{{ produto.descricao }}</td>
-            <td>R$ {{ produto.preco }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
 <!-- Modal Produto -->
 <div class="modal fade" id="modalProduto" tabindex="-1" aria-labelledby="modalProdutoLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -104,32 +199,6 @@
     </form>
   </div>
 </div>
-
-<hr>
-
-<h3>Serviços</h3>
-<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalServico">Novo Serviço</button>
-
-<table class="table table-striped" id="tabela-servicos">
-    <thead>
-        <tr>
-            <th>Código</th>
-            <th>Nome</th>
-            <th>Descrição</th>
-            <th>Preço</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for servico in servicos_list %}
-        <tr>
-            <td>{{ servico.codigo }}</td>
-            <td>{{ servico.nome }}</td>
-            <td>{{ servico.descricao }}</td>
-            <td>R$ {{ servico.preco }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
 
 <!-- Modal Serviço -->
 <div class="modal fade" id="modalServico" tabindex="-1" aria-labelledby="modalServicoLabel" aria-hidden="true">
@@ -155,6 +224,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function getCookie(name) {
     let cookieValue = null;
@@ -255,4 +325,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-{% endblock %}
+</body>
+</html>
