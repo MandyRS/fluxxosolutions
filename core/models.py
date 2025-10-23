@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import date
 from django.contrib.auth.models import User
 
 # ------------------------
@@ -82,7 +83,7 @@ class Servico(models.Model):
 class Orcamento(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    numero = models.PositiveIntegerField()
+    numero = models.PositiveIntegerField(editable=False, unique=False)
     criado_em = models.DateTimeField(auto_now_add=True)
     previsao_entrega = models.DateField(null=True, blank=True)
     solicitante = models.CharField(max_length=200, blank=True)
@@ -105,7 +106,18 @@ class Orcamento(models.Model):
 
     @property
     def total(self):
-        return self.subtotal - float(self.desconto)
+        return self.subtotal - float(self.desconto or 0)
+
+    def save(self, *args, **kwargs):
+        
+        if not self.numero:
+            ano = date.today().year
+            ultimo = Orcamento.objects.filter(
+                empresa=self.empresa,
+                criado_em__year=ano
+            ).order_by('-numero').first()
+            self.numero = (ultimo.numero + 1) if ultimo else 1
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Orçamento #{self.numero} - {self.cliente.razao_social}"
@@ -128,3 +140,5 @@ class ItemOrcamento(models.Model):
     def __str__(self):
         nome = self.produto.nome if self.produto else (self.servico.nome if self.servico else "Item")
         return f"{nome} x{self.quantidade}"
+
+        

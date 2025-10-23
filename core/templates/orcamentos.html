@@ -1,295 +1,362 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Fluxxo Solutions</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>Fluxxo Solutions - Orçamentos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+  <style>
+    body { background: #f7f7f7; }
+    .table-sm input, .table-sm select { height: 32px; font-size: 14px; }
+  </style>
 </head>
 <body>
+  <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand" href="{% url 'core:index' %}">Fluxxo Solutions</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'core:index' %}">Fluxxo Solutions</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          {% if user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'core:listar_orcamentos' %}">Orçamentos</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'core:logout' %}">Sair</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-        {% if user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'core:dashboard' %}">Dashboard</a>
-          </li>
+  <!-- CONTEÚDO -->
+  <div class="container my-4">
+    <h2 class="mb-4">Orçamentos</h2>
+    <button id="btnCriarOrcamento" class="btn btn-primary mb-3">+ Novo Orçamento</button>
 
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'core:listar_orcamentos' %}">Orçamentos</a>
-          </li>
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Previsão</th>
+          <th>Solicitante</th>
+          <th>Total (R$)</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for orc in orcamentos %}
+        <tr>
+          <td>{{ orc.id }}</td>
+          <td>{{ orc.cliente.razao_social }}</td>
+          <td>{{ orc.previsao_entrega|date:"d/m/Y" }}</td>
+          <td>{{ orc.solicitante }}</td>
+          <td>{{ orc.total|floatformat:2 }}</td>
+          <td>
+            <button class="btn btn-sm btn-info btnEditar" data-id="{{ orc.id }}">Editar</button>
+            <button class="btn btn-sm btn-danger btnExcluir" data-id="{{ orc.id }}">Excluir</button>
+            <a href="{% url 'core:imprimir_orcamento' orc.id %}" target="_blank" class="btn btn-sm btn-secondary">Imprimir</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center">Nenhum orçamento encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'core:configuracoes' %}">Configurações</a>
-          </li>
+  <!-- MODAL -->
+  <div class="modal fade" id="modalOrcamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <form id="formOrcamento">{% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title">Novo Orçamento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
 
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'core:suporte' %}">Suporte</a>
-          </li>
+            <!-- CLIENTE -->
+            <h5>Dados do Cliente</h5>
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label>Cliente</label>
+                <input type="text" id="clienteInput" class="form-control" autocomplete="off">
+                <input type="hidden" id="clienteId" name="cliente">
+              </div>
+              <div class="col-md-6">
+                <label>Nome Fantasia</label>
+                <input type="text" id="nome_fantasia" class="form-control" readonly>
+              </div>
+            </div>
 
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'core:logout' %}">Sair</a>
-          </li>
-        {% else %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'core:login' %}">Login</a>
-          </li>
-        {% endif %}
+            <div class="row g-3 mb-3">
+              <div class="col-md-4"><label>CPF/CNPJ</label><input id="cpf_cnpj" class="form-control" readonly></div>
+              <div class="col-md-4"><label>Email</label><input id="email" class="form-control" readonly></div>
+              <div class="col-md-4"><label>Telefone</label><input id="telefone" class="form-control" readonly></div>
+            </div>
+            <div class="mb-3"><label>Endereço</label><input id="endereco" class="form-control" readonly></div>
 
-      </ul>
+            <hr>
+
+            <!-- INFO -->
+            <h5>Informações do Orçamento</h5>
+            <div class="row g-3 mb-3">
+              <div class="col-md-4"><label>Solicitante</label><input id="solicitante" name="solicitante" class="form-control"></div>
+              <div class="col-md-4"><label>Previsão de Entrega</label><input type="date" id="previsao_entrega" name="previsao_entrega" class="form-control"></div>
+              <div class="col-md-4"><label>Vencimento</label><input type="date" id="vencimento" name="vencimento" class="form-control"></div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label>Forma de Pagamento</label>
+                <select id="forma_pagamento" name="forma_pagamento" class="form-select">
+                  <option value="">Selecione...</option>
+                  <option>Pix</option><option>Cartão de Crédito</option><option>Cartão de Débito</option>
+                  <option>Boleto</option><option>Transferência Bancária</option><option>Dinheiro</option><option>Outros</option>
+                </select>
+              </div>
+              <div class="col-md-6"><label>Responsável</label><input id="responsavel" name="responsavel" class="form-control"></div>
+            </div>
+
+            <hr>
+
+            <!-- ITENS -->
+            <h5>Itens do Orçamento</h5>
+            <table class="table table-sm" id="tabelaItens">
+              <thead><tr><th>Tipo</th><th>Produto/Serviço</th><th>Qtd</th><th>Unitário (R$)</th><th>Total (R$)</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <button type="button" id="btnAddItem" class="btn btn-outline-primary btn-sm">+ Adicionar Item</button>
+
+            <div class="text-end mt-3"><strong>Total Geral: R$ <span id="totalGeral">0,00</span></strong></div>
+
+            <hr>
+
+            <!-- DESCONTO -->
+            <div class="row mt-4">
+              <div class="col-md-6 offset-md-6 text-end">
+                <label>Desconto (R$)</label>
+                <input type="number" id="desconto" step="0.01" min="0" value="0.00" class="form-control w-50 d-inline-block text-end">
+              </div>
+            </div>
+
+            <hr>
+
+            <div class="mb-3">
+              <label>Observações</label>
+              <textarea id="observacao" name="observacao" class="form-control" rows="3"></textarea>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</nav>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+  <script>
+  $(function() {
+    const modal = new bootstrap.Modal(document.getElementById('modalOrcamento'));
+    let editandoId = null;
+
+    // Autocomplete cliente
+    // Autocomplete cliente
+$("#clienteInput").autocomplete({
+    source: "{% url 'autocomplete_cliente' %}",
+
+    minLength: 2,
+    focus: function(event, ui) {
+        $("#clienteInput").val(ui.item.label);
+        return false; // evita substituir o valor do input
+    },
+    select: function(event, ui){
+        $("#clienteId").val(ui.item.id);
+        $("#clienteInput").val(ui.item.label);
+        $("#nome_fantasia").val(ui.item.nome_fantasia);
+        $("#cpf_cnpj").val(ui.item.cpf_cnpj);
+        $("#email").val(ui.item.email);
+        $("#telefone").val(ui.item.telefone);
+        $("#endereco").val(ui.item.endereco);
+        return false;
+    }
+});
+
+// Autocomplete produto/serviço para inputs dinâmicos
+$(document).on('focus', '.nomeItem', function() {
+    $(this).autocomplete({
+        source: "{% url 'autocomplete_produto_servico' %}",
+        minLength: 2,
+        focus: function(event, ui) {
+            $(this).val(ui.item.label);
+            return false;
+        },
+        select: function(event, ui){
+            $(this).data('id', ui.item.id);
+            $(this).data('tipo', ui.item.tipo);
+            $(this).val(ui.item.label);
+            $(this).closest('tr').find('.valorItem').val(ui.item.preco.toFixed(2));
+            atualizarTotal();
+            return false;
+        }
+    });
+});
 
 
+    // Novo orçamento
+    $("#btnCriarOrcamento").click(() => {
+      editandoId = null;
+      $("#formOrcamento")[0].reset();
+      $("#tabelaItens tbody").empty();
+      $("#totalGeral").text("0,00");
+      $(".modal-title").text("Novo Orçamento");
+      modal.show();
+    });
 
-<h2 class="mb-4">Orçamentos</h2>
-
-<button id="btnCriarOrcamento" class="btn btn-primary mb-3">+ Novo Orçamento</button>
-
-<table class="table table-striped table-hover align-middle" id="tabelaOrcamentos">
-  <thead class="table-light">
-    <tr>
-      <th>Número</th>
-      <th>Cliente</th>
-      <th>Previsão Entrega</th>
-      <th>Solicitante</th>
-      <th>Total</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for orc in orcamentos %}
-    <tr data-id="{{ orc.id }}">
-      <td>{{ orc.numero }}</td>
-      <td>{{ orc.cliente.razao_social }}</td>
-      <td>{{ orc.previsao_entrega }}</td>
-      <td>{{ orc.solicitante }}</td>
-      <td>R$ {{ orc.total|floatformat:2 }}</td>
-      <td>
-        <button class="btn btn-sm btn-info btnEditar" data-id="{{ orc.id }}">Editar</button>
-        <button class="btn btn-sm btn-danger btnExcluir" data-id="{{ orc.id }}">Excluir</button>
-        <a href="{% url 'core:detalhe_orcamento' orc.id %}" class="btn btn-sm btn-secondary">Ver</a>
-      </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="6" class="text-center">Nenhum orçamento encontrado.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
-
-<!-- Modal Criar/Editar -->
-<div class="modal fade" id="modalOrcamento" tabindex="-1">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <form id="formOrcamento">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title">Orçamento</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="orcamentoId" name="orcamentoId">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Cliente</label>
-              <input type="text" id="clienteInput" class="form-control" autocomplete="off">
-              <input type="hidden" id="clienteId" name="clienteId">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Solicitante</label>
-              <input type="text" id="solicitante" class="form-control">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Previsão de Entrega</label>
-              <input type="date" id="previsao_entrega" class="form-control">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Forma de Pagamento</label>
-              <input type="text" id="forma_pagamento" class="form-control">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Vencimento</label>
-              <input type="date" id="vencimento" class="form-control">
-            </div>
-          </div>
-
-          <hr>
-
-          <h5>Itens do Orçamento</h5>
-          <table class="table table-sm align-middle" id="tabelaItens">
-            <thead class="table-light">
-              <tr>
-                <th>Tipo</th>
-                <th>Produto/Serviço</th>
-                <th>Qtd</th>
-                <th>Valor Unitário</th>
-                <th>Total</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-          <button type="button" id="btnAddItem" class="btn btn-sm btn-outline-primary">+ Adicionar Item</button>
-
-          <div class="text-end mt-3">
-            <strong>Total Geral: R$ <span id="totalGeral">0,00</span></strong>
-          </div>
-
-          <hr>
-
-          <div class="mb-3">
-            <label class="form-label">Observação</label>
-            <textarea id="observacao" class="form-control"></textarea>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Salvar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Scripts -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-
-<script>
-$(function(){
-  const modalOrcamento = new bootstrap.Modal(document.getElementById('modalOrcamento'));
-
-  // Autocomplete de cliente
-  $("#clienteInput").autocomplete({
-      source: "{% url 'core:autocomplete_cliente' %}",
-      minLength: 2,
-      select: function(event, ui){
-          $("#clienteInput").val(ui.item.label);
-          $("#clienteId").val(ui.item.id);
-          return false;
-      }
-  });
-
-  // Abrir modal
-  $("#btnCriarOrcamento").click(function(){
-      limparFormulario();
-      modalOrcamento.show();
-  });
-
-  // Adicionar item
-  $("#btnAddItem").click(function(){
+    // Adicionar item
+    $("#btnAddItem").click(() => {
       const linha = `
         <tr>
-          <td>
-            <select class="form-select tipoItem">
-              <option value="produto">Produto</option>
-              <option value="servico">Serviço</option>
-            </select>
-          </td>
-          <td><input type="text" class="form-control nomeItem" autocomplete="off"></td>
-          <td><input type="number" class="form-control qtdItem" min="1" value="1"></td>
+          <td><select class="form-select tipoItem"><option value="produto">Produto</option><option value="servico">Serviço</option></select></td>
+          <td><input type="text" class="form-control nomeItem" placeholder="Digite o nome..."></td>
+          <td><input type="number" class="form-control qtdItem" value="1" min="1"></td>
           <td><input type="number" class="form-control valorItem" step="0.01" value="0.00"></td>
           <td class="totalItem">R$ 0,00</td>
           <td><button type="button" class="btn btn-sm btn-danger btnRemoverItem">x</button></td>
         </tr>`;
       $("#tabelaItens tbody").append(linha);
-      atualizarAutocompleteItens();
-  });
+    });
 
-  // Remover item
-  $(document).on('click', '.btnRemoverItem', function(){
+    // Remover item
+    $(document).on('click', '.btnRemoverItem', function(){
       $(this).closest('tr').remove();
       atualizarTotal();
-  });
+    });
 
-  // Atualiza total ao mudar quantidade ou valor
-  $(document).on('input', '.qtdItem, .valorItem', atualizarTotal);
-
-  function atualizarAutocompleteItens(){
-      $(".nomeItem").autocomplete({
-          source: "{% url 'core:autocomplete_produto_servico' %}",
-          minLength: 2,
-          select: function(event, ui){
-              $(this).val(ui.item.label);
-              $(this).closest('tr').data('item-id', ui.item.id);
-              $(this).closest('tr').find('.valorItem').val(ui.item.preco);
-              atualizarTotal();
-              return false;
-          }
-      });
-  }
-
-  function atualizarTotal(){
+    // Atualizar totais
+    $(document).on('input', '.qtdItem, .valorItem, #desconto', atualizarTotal);
+    function atualizarTotal(){
       let total = 0;
       $("#tabelaItens tbody tr").each(function(){
-          const qtd = parseFloat($(this).find('.qtdItem').val()) || 0;
-          const valor = parseFloat($(this).find('.valorItem').val()) || 0;
-          const subtotal = qtd * valor;
-          $(this).find('.totalItem').text("R$ " + subtotal.toFixed(2).replace('.', ','));
-          total += subtotal;
+        const qtd = parseFloat($(this).find('.qtdItem').val()) || 0;
+        const valor = parseFloat($(this).find('.valorItem').val()) || 0;
+        const subtotal = qtd * valor;
+        $(this).find('.totalItem').text("R$ " + subtotal.toFixed(2).replace('.', ','));
+        total += subtotal;
       });
-      $("#totalGeral").text(total.toFixed(2).replace('.', ','));
-  }
+      const desconto = parseFloat($("#desconto").val()) || 0;
+      const final = Math.max(total - desconto, 0);
+      $("#totalGeral").text(final.toFixed(2).replace('.', ','));
+    }
 
-  // Salvar orçamento com itens
-  $("#formOrcamento").submit(function(e){
+    // Salvar orçamento
+    $("#formOrcamento").submit(function(e){
       e.preventDefault();
-      const id = $("#orcamentoId").val();
-      const url = id ? `/core/orcamentos/${id}/editar/` : `/core/orcamentos/criar/`;
-
       const itens = [];
       $("#tabelaItens tbody tr").each(function(){
-          itens.push({
-              tipo: $(this).find('.tipoItem').val(),
-              nome: $(this).find('.nomeItem').val(),
-              id_item: $(this).data('item-id') || null,
-              qtd: $(this).find('.qtdItem').val(),
-              valor: $(this).find('.valorItem').val(),
-          });
+        const nome = $(this).find('.nomeItem');
+        if (!nome.data('id')) return; // ignora linhas vazias
+        itens.push({
+          id_item: nome.data('id'),
+          tipo: nome.data('tipo') || $(this).find('.tipoItem').val(),
+          quantidade: $(this).find('.qtdItem').val(),
+          valor_unitario: $(this).find('.valorItem').val()
+        });
       });
 
-      const data = {
-          cliente: $("#clienteId").val(),
-          solicitante: $("#solicitante").val(),
-          previsao_entrega: $("#previsao_entrega").val(),
-          forma_pagamento: $("#forma_pagamento").val(),
-          vencimento: $("#vencimento").val(),
-          observacao: $("#observacao").val(),
-          itens: JSON.stringify(itens),
-          csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+      const dados = {
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+        cliente: $("#clienteId").val(),
+        solicitante: $("#solicitante").val(),
+        previsao_entrega: $("#previsao_entrega").val(),
+        vencimento: $("#vencimento").val(),
+        forma_pagamento: $("#forma_pagamento").val(),
+        responsavel: $("#responsavel").val(),
+        desconto: $("#desconto").val(),
+        observacao: $("#observacao").val(),
+        itens: JSON.stringify(itens)
       };
 
-      $.post(url, data, function(resp){
-          if(resp.status === 'ok'){
-              modalOrcamento.hide();
-              location.reload();
+      const url = editandoId
+        ? `/orcamentos/editar/${editandoId}/`
+        : "{% url 'core:criar_orcamento' %}";
+
+      $.post(url, dados)
+        .done(res => {
+          if(res.status === "ok"){
+            alert("Orçamento salvo com sucesso!");
+            location.reload();
           } else {
-              alert('Erro ao salvar: ' + JSON.stringify(resp.erros));
+            alert("Erro: " + res.mensagem);
           }
+        })
+        .fail(() => alert("Erro no servidor."));
+    });
+
+    // Editar orçamento existente
+    $(document).on('click', '.btnEditar', function(){
+      const id = $(this).data('id');
+      $.get(`/orcamentos/${id}/obter/`, function(res){
+
+        if(res.status === "ok"){
+          const o = res.orcamento;
+          editandoId = o.id;
+          $(".modal-title").text("Editar Orçamento #" + o.id);
+          $("#clienteInput").val(o.cliente_nome);
+          $("#clienteId").val(o.cliente_id);
+          $("#solicitante").val(o.solicitante);
+          $("#previsao_entrega").val(o.previsao_entrega);
+          $("#vencimento").val(o.vencimento);
+          $("#forma_pagamento").val(o.forma_pagamento);
+          $("#responsavel").val(o.responsavel);
+          $("#desconto").val(o.desconto);
+          $("#observacao").val(o.observacao);
+
+          $("#tabelaItens tbody").empty();
+          o.itens.forEach(i => {
+            $("#tabelaItens tbody").append(`
+              <tr>
+                <td><select class="form-select tipoItem"><option value="produto" ${i.tipo === 'produto' ? 'selected' : ''}>Produto</option><option value="servico" ${i.tipo === 'servico' ? 'selected' : ''}>Serviço</option></select></td>
+                <td><input type="text" class="form-control nomeItem" value="${i.nome}" data-id="${i.id_item}" data-tipo="${i.tipo}"></td>
+                <td><input type="number" class="form-control qtdItem" value="${i.quantidade}" min="1"></td>
+                <td><input type="number" class="form-control valorItem" value="${i.valor_unitario.toFixed(2)}" step="0.01"></td>
+                <td class="totalItem">R$ ${(i.quantidade * i.valor_unitario).toFixed(2).replace('.', ',')}</td>
+                <td><button type="button" class="btn btn-sm btn-danger btnRemoverItem">x</button></td>
+              </tr>
+            `);
+          });
+          atualizarTotal();
+          modal.show();
+        } else {
+          alert("Erro ao carregar orçamento.");
+        }
       });
+    });
+
+    // Excluir orçamento
+    $(document).on('click', '.btnExcluir', function() {
+      if (!confirm("Tem certeza que deseja excluir este orçamento?")) return;
+      const url = $(this).data('url');
+      $.post(url, {
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val()
+      })
+      .done(res => {
+        if (res.status === "ok") {
+          alert("Orçamento excluído com sucesso!");
+          location.reload();
+        } else {
+          alert("Erro ao excluir: " + res.mensagem);
+        }
+      })
+      .fail(() => alert("Erro no servidor."));
+    });
   });
-
-  function limparFormulario(){
-      $("#formOrcamento")[0].reset();
-      $("#tabelaItens tbody").empty();
-      $("#orcamentoId").val('');
-      $("#clienteId").val('');
-      $("#totalGeral").text("0,00");
-  }
-});
-</script>
-
-</body >
+  </script>
+</body>
 </html>

@@ -1,36 +1,164 @@
-{% extends "base.html" %}
-{% block content %}
-<h1>Orçamento #{{ orcamento.numero }}</h1>
-<p><strong>Cliente:</strong> {{ orcamento.cliente.razao_social }}</p>
-<p><strong>Data:</strong> {{ orcamento.criado_em|date:"d/m/Y" }}</p>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Orçamento #{{ orcamento.id }} - {{ orcamento.empresa.nome_fantasia }}</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 40px;
+      color: #222;
+    }
+    header {
+      border-bottom: 2px solid #333;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header img {
+      height: 70px;
+    }
+    .empresa-info {
+      text-align: right;
+      font-size: 13px;
+    }
+    h1 {
+      text-align: center;
+      text-transform: uppercase;
+      margin: 20px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      font-size: 13px;
+    }
+    th {
+      background: #f2f2f2;
+      text-align: left;
+    }
+    .totais {
+      margin-top: 20px;
+      text-align: right;
+    }
+    .totais strong {
+      font-size: 14px;
+    }
+    .assinatura {
+      margin-top: 60px;
+      text-align: center;
+      font-size: 13px;
+    }
+    .observacoes {
+      border: 1px dashed #aaa;
+      padding: 10px;
+      margin-top: 25px;
+      font-size: 13px;
+      background: #fcfcfc;
+    }
+    .dados-secundarios {
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    @media print {
+      body { margin: 10px; }
+      header { border-bottom: 1px solid #444; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
 
-<table border="1" width="100%">
-<thead>
-<tr>
-    <th>Produto</th>
-    <th>Serviço</th>
-    <th>Quantidade</th>
-    <th>Preço Unit.</th>
-    <th>Total</th>
-</tr>
-</thead>
-<tbody>
-    {% for item in orcamento.itens.all %}
-    <tr>
-        <td>{{ item.produto.nome if item.produto else "" }}</td>
-        <td>{{ item.servico.nome if item.servico else "" }}</td>
+  <header>
+    <div>
+      {% if orcamento.empresa.logo %}
+        <img src="{{ orcamento.empresa.logo.url }}" alt="Logo da empresa">
+      {% else %}
+        <strong>{{ orcamento.empresa.nome_fantasia }}</strong>
+      {% endif %}
+    </div>
+    <div class="empresa-info">
+      <strong>{{ orcamento.empresa.razao_social }}</strong><br>
+      CNPJ: {{ orcamento.empresa.cnpj }}<br>
+      {{ orcamento.empresa.endereco }}<br>
+      {{ orcamento.empresa.cidade }} - {{ orcamento.empresa.uf }}<br>
+      Telefone: {{ orcamento.empresa.telefone }}<br>
+      E-mail: {{ orcamento.empresa.email }}
+    </div>
+  </header>
+
+  <h1>Orçamento nº {{ orcamento.id }}</h1>
+
+  <div class="dados-secundarios">
+    <strong>Data:</strong> {{ orcamento.criado_em|date:"d/m/Y" }}<br>
+    <strong>Vencimento:</strong> {{ orcamento.vencimento|date:"d/m/Y" }}<br>
+    <strong>Previsão de Entrega:</strong> {{ orcamento.previsao_entrega|date:"d/m/Y" }}<br>
+    <strong>Forma de Pagamento:</strong> {{ orcamento.forma_pagamento }}<br>
+    <strong>Responsável:</strong> {{ orcamento.responsavel }}<br>
+  </div>
+
+  <h3>Cliente</h3>
+  <table>
+    <tr><th>Razão Social</th><td>{{ orcamento.cliente.razao_social }}</td></tr>
+    <tr><th>Nome Fantasia</th><td>{{ orcamento.cliente.nome_fantasia }}</td></tr>
+    <tr><th>CPF/CNPJ</th><td>{{ orcamento.cliente.cpf_cnpj }}</td></tr>
+    <tr><th>Telefone</th><td>{{ orcamento.cliente.telefone }}</td></tr>
+    <tr><th>E-mail</th><td>{{ orcamento.cliente.email }}</td></tr>
+    <tr><th>Endereço</th><td>{{ orcamento.cliente.endereco }}</td></tr>
+  </table>
+
+  <h3 style="margin-top: 30px;">Itens do Orçamento</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Descrição</th>
+        <th>Qtd</th>
+        <th>Valor Unit. (R$)</th>
+        <th>Total (R$)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in orcamento.itens.all %}
+      <tr>
+        <td>{{ item.tipo|title }}</td>
+        <td>{{ item.nome }}</td>
         <td>{{ item.quantidade }}</td>
-        <td>{{ item.preco_unitario|floatformat:2 }}</td>
+        <td>{{ item.valor_unitario|floatformat:2 }}</td>
         <td>{{ item.total|floatformat:2 }}</td>
-    </tr>
-    {% endfor %}
-</tbody>
-</table>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-<p><strong>Subtotal:</strong> {{ orcamento.subtotal|floatformat:2 }}</p>
-<p><strong>Desconto:</strong> {{ orcamento.desconto|floatformat:2 }}</p>
-<p><strong>Total:</strong> {{ orcamento.total|floatformat:2 }}</p>
+  <div class="totais">
+    <p><strong>Subtotal:</strong> R$ {{ orcamento.subtotal|floatformat:2 }}</p>
+    <p><strong>Desconto:</strong> R$ {{ orcamento.desconto|floatformat:2 }}</p>
+    <p><strong>Total Final:</strong> <strong>R$ {{ orcamento.total|floatformat:2 }}</strong></p>
+  </div>
 
-<button onclick="window.print()">Imprimir</button>
+  {% if orcamento.observacao %}
+  <div class="observacoes">
+    <strong>Observações:</strong><br>
+    {{ orcamento.observacao|linebreaks }}
+  </div>
+  {% endif %}
 
-{% endblock %}
+  <div class="assinatura">
+    ___________________________________________<br>
+    <strong>{{ orcamento.empresa.responsavel or orcamento.responsavel }}</strong><br>
+    Responsável
+  </div>
+
+  <div class="no-print" style="text-align:center; margin-top:20px;">
+    <button onclick="window.print()" style="padding:8px 20px;">🖨️ Imprimir</button>
+  </div>
+
+</body>
+</html>
