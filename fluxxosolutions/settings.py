@@ -23,7 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Seus apps aqui:
     'core',
-    'blog',
+   
 ]
 
 # Middleware padrão do Django

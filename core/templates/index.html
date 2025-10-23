@@ -1,11 +1,106 @@
-{% extends 'core/base.html' %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Fluxxo Solutions</title>
+    <style>
+        section {
+            padding: 80px 0;
+        }
+        section:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .section-title {
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'core:index' %}">Fluxxo Solutions</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'core:selecionar_empresa' %}">Empresas</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'core:logout' %}">Sair</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'core:selecionar_sistema' %}">Login</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-{% block title %}Bem-vindo{% endblock %}
+    <!-- Hero -->
+    <section class="text-center bg-primary text-white">
+        <div class="container">
+            <h1 class="display-4">Bem-vindo à Fluxxo Solutions</h1>
+            <p class="lead">Soluções digitais personalizadas para sua empresa crescer com eficiência.</p>
+        </div>
+    </section>
 
-{% block content %}
-<div class="text-center py-5">
-    <h1 class="display-4">Sistema de Orçamentos</h1>
-    <p class="lead">Gestão de orçamentos, clientes, produtos e serviços de forma simples e eficiente.</p>
-    <a href="/admin/login/" class="btn btn-primary btn-lg">Entrar</a>
-</div>
-{% endblock %}
+    <!-- Sobre a Empresa -->
+    <section>
+        <div class="container">
+            <h2 class="section-title text-center">Sobre a Empresa</h2>
+            <p class="text-center">A Fluxxo Solutions é especializada em desenvolver sistemas personalizados, planilhas inteligentes, sites e ferramentas digitais para empresas de todos os portes. Nosso objetivo é tornar processos administrativos e financeiros mais rápidos e eficientes, aumentando a produtividade e reduzindo erros.</p>
+        </div>
+    </section>
+
+    <!-- Sistema de Orçamentos -->
+    <section>
+        <div class="container">
+            <h2 class="section-title text-center">Sistema de Orçamentos</h2>
+            <p class="text-center">Nosso sistema permite criar orçamentos detalhados para produtos e serviços, com gestão completa de preços, descontos, impostos e envio direto para clientes. Tudo isso de forma simples e acessível, garantindo organização e profissionalismo.</p>
+        </div>
+    </section>
+
+    <!-- Bordereaux e Gestão -->
+    <section>
+        <div class="container">
+            <h2 class="section-title text-center">Bordero e Gestão</h2>
+            <p class="text-center">Facilitamos o controle financeiro da sua empresa com bordero digitais, relatórios automáticos e integração com sistemas internos. Assim, você tem transparência e segurança na gestão de pagamentos e recebimentos.</p>
+        </div>
+    </section>
+
+    <!-- Planilhas Personalizadas -->
+    <section>
+        <div class="container">
+            <h2 class="section-title text-center">Planilhas Personalizadas</h2>
+            <p class="text-center">Criamos planilhas inteligentes e personalizadas que se adaptam ao seu negócio. Com fórmulas automáticas, dashboards visuais e relatórios claros, você toma decisões estratégicas mais rapidamente.</p>
+        </div>
+    </section>
+
+    <!-- Sistemas Personalizados -->
+    <section>
+        <div class="container">
+            <h2 class="section-title text-center">Sistemas Personalizados</h2>
+            <p class="text-center">Desenvolvemos sistemas sob medida, de acordo com a necessidade da sua empresa, desde controle de estoque até CRM e ERP simplificados. Cada sistema é projetado para otimizar processos internos e melhorar a produtividade.</p>
+        </div>
+    </section>
+
+    <!-- Desenvolvimento de Sites -->
+    <section>
+        <div class="container">
+            <h2 class="section-title text-center">Sites Profissionais</h2>
+            <p class="text-center">Oferecemos desenvolvimento de sites modernos, responsivos e otimizados, com foco em performance e experiência do usuário. Ideal para apresentar sua empresa, produtos e serviços de forma profissional na web.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4">
+        <div class="container">
+            &copy; 2025 Fluxxo Solutions. Todos os direitos reservados.
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

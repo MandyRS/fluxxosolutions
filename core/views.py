@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
+from django.contrib import messages
 from django.http import JsonResponse
+from django.contrib.auth import authenticate, login
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from datetime import timedelta
@@ -13,6 +15,9 @@ from .models import (
 )
 from .forms import OrcamentoForm, ItemOrcamentoForm
 
+def selecionar_sistema(request):
+    # Renderiza a página com os cards de sistemas
+    return render(request, 'selecionar_sistema.html')
 
 # -----------------------------
 # Funções auxiliares
@@ -29,12 +34,27 @@ def get_empresa_do_usuario(user):
 # Views básicas
 # -----------------------------
 def index(request):
-    return render(request, 'core/index.html')
+    return render(request, 'index.html')
 
 
 def logout_view(request):
     logout(request)
     return redirect('core:index')
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # Verifica se o usuário e senha estão corretos
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)  # Faz o login
+            return redirect('index')  # Redireciona para a página inicial
+        else:
+            messages.error(request, "Usuário ou senha incorretos")  # Mensagem de erro
+
+    return render(request, 'login.html')
 
 
 @login_required
@@ -43,7 +63,7 @@ def selecionar_empresa(request):
     if request.method == 'POST':
         request.session['empresa_id'] = request.POST.get('empresa_id')
         return redirect('core:dashboard')
-    return render(request, 'core/selecionar_empresa.html', {'empresas': empresas})
+    return render(request, 'selecionar_empresa.html', {'empresas': empresas})
 
 
 @login_required
@@ -70,7 +90,7 @@ def dashboard(request):
         'servicos': servicos.count(),
         'alerta_orcamentos': alerta_orcamentos,
     }
-    return render(request, 'core/configuracao.html', context)
+    return render(request, 'dashboard.html', context)
 
 
 # -----------------------------
@@ -162,6 +182,32 @@ def criar_servico_ajax(request):
 # Orçamentos
 # -----------------------------
 @login_required
+def orcamento_detalhe_json(request, id):
+    orcamento = get_object_or_404(
+        Orcamento,
+        id=id,
+        empresa_id=request.session.get('empresa_id')
+    )
+    itens = ItemOrcamento.objects.filter(orcamento=orcamento)
+    data = {
+        'id': orcamento.id,
+        'cliente': orcamento.cliente.razao_social if orcamento.cliente else '',
+        'total': float(orcamento.total or 0),
+        'itens': [
+            {
+                'id': i.id,
+                'produto': i.produto.nome if i.produto else None,
+                'servico': i.servico.nome if i.servico else None,
+                'quantidade': i.quantidade,
+                'valor': float(i.valor),
+            }
+            for i in itens
+        ]
+    }
+    return JsonResponse(data)
+
+
+@login_required
 def listar_orcamentos(request):
     empresa_id = request.session.get('empresa_id')
     if not empresa_id:
@@ -170,7 +216,7 @@ def listar_orcamentos(request):
     orcamentos = Orcamento.objects.filter(empresa_id=empresa_id).order_by('-criado_em')
     clientes = Cliente.objects.filter(empresa_id=empresa_id)
 
-    return render(request, 'core/orcamentos/listar.html', {
+    return render(request, 'orcamentos/listar.html', {
         'orcamentos': orcamentos,
         'clientes': clientes,
     })
@@ -250,7 +296,7 @@ def excluir_orcamento(request, orcamento_id):
 def imprimir_orcamento(request, orcamento_id):
     empresa_id = request.session.get('empresa_id')
     orcamento = get_object_or_404(Orcamento, id=orcamento_id, empresa_id=empresa_id)
-    return render(request, 'core/orcamentos/imprimir.html', {'orcamento': orcamento})
+    return render(request, 'orcamentos/imprimir.html', {'orcamento': orcamento})
 
 
 # -----------------------------

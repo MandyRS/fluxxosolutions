@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .btn {
+    margin-top: 10px;
+  }
+</style>
+
+<div class="container mt-5" style="max-width: 400px;">
+  <h2 class="text-center mb-4">Login</h2>
+
+  <!-- Mensagens de erro -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Usuário</label>
+      <input type="text" name="username" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Senha</label>
+      <input type="password" name="password" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-info w-100">Entrar</button>
+    <button type="button" class="btn btn-secondary w-100" onclick="window.location.href='/'">
+      Voltar
+    </button>
+  </form>
+</div>
+{% endblock %}
