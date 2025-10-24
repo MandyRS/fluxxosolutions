@@ -29,3 +29,13 @@ class ItemOrcamentoForm(forms.ModelForm):
         if produto and servico:
             raise forms.ValidationError("Informe somente produto ou serviço, não ambos.")
         return cleaned_data
+
+
+
+from django import forms
+from .models import Empresa
+
+class EmpresaForm(forms.ModelForm):
+    class Meta:
+        model = Empresa
+        fields = ['nome', 'cnpj', 'telefone', 'endereco', 'logo']

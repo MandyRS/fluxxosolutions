@@ -1,31 +1,67 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>Fluxxo Solutions - Orçamentos</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+  <meta charset="UTF-8">
+  <title>Suporte</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body { background: #f7f7f7; }
     .table-sm input, .table-sm select { height: 32px; font-size: 14px; }
+    .ui-autocomplete {
+      z-index: 9999 !important; /* garante que aparece acima do modal */
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .ui-helper-hidden-accessible {
+  display: none !important;
+}
   </style>
 </head>
 <body>
-  <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-      <a class="navbar-brand" href="{% url 'core:index' %}">Fluxxo Solutions</a>
-      <div class="collapse navbar-collapse">
-        <ul class="navbar-nav ms-auto">
-          {% if user.is_authenticated %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'core:listar_orcamentos' %}">Orçamentos</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'core:logout' %}">Sair</a></li>
-          {% endif %}
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'core:index' %}">Fluxxo Solutions</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
 
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:dashboard' %}">Dashboard</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:listar_orcamentos' %}">Orçamentos</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:configuracoes' %}">Configurações</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:suporte' %}">Suporte</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:logout' %}">Sair</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'core:login' %}">Login</a>
+          </li>
+        {% endif %}
+
+      </ul>
+    </div>
+  </div>
+</nav>
   <!-- CONTEÚDO -->
   <div class="container my-4">
     <h2 class="mb-4">Orçamentos</h2>
@@ -34,12 +70,7 @@
     <table class="table table-striped table-hover align-middle">
       <thead class="table-light">
         <tr>
-          <th>#</th>
-          <th>Cliente</th>
-          <th>Previsão</th>
-          <th>Solicitante</th>
-          <th>Total (R$)</th>
-          <th>Ações</th>
+          <th>#</th><th>Cliente</th><th>Previsão</th><th>Solicitante</th><th>Total (R$)</th><th>Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -52,7 +83,7 @@
           <td>{{ orc.total|floatformat:2 }}</td>
           <td>
             <button class="btn btn-sm btn-info btnEditar" data-id="{{ orc.id }}">Editar</button>
-            <button class="btn btn-sm btn-danger btnExcluir" data-id="{{ orc.id }}">Excluir</button>
+            <button class="btn btn-sm btn-danger btnExcluir" data-id="{{ orc.id }}" data-url="{% url 'core:excluir_orcamento' orc.id %}">Excluir</button>
             <a href="{% url 'core:imprimir_orcamento' orc.id %}" target="_blank" class="btn btn-sm btn-secondary">Imprimir</a>
           </td>
         </tr>
@@ -79,28 +110,28 @@
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <label>Cliente</label>
-                <input type="text" id="clienteInput" class="form-control" autocomplete="off">
+                <input type="text" id="clienteInput" class="form-control" autocomplete="off" placeholder="Digite o nome do cliente...">
                 <input type="hidden" id="clienteId" name="cliente">
               </div>
               <div class="col-md-6">
                 <label>Nome Fantasia</label>
-                <input type="text" id="nome_fantasia" class="form-control" readonly>
+                <input type="text" id="nome_fantasia" class="form-control" readonly autocomplete="off">
               </div>
             </div>
 
             <div class="row g-3 mb-3">
-              <div class="col-md-4"><label>CPF/CNPJ</label><input id="cpf_cnpj" class="form-control" readonly></div>
-              <div class="col-md-4"><label>Email</label><input id="email" class="form-control" readonly></div>
-              <div class="col-md-4"><label>Telefone</label><input id="telefone" class="form-control" readonly></div>
+              <div class="col-md-4"><label>CPF/CNPJ</label><input id="cpf_cnpj" class="form-control" readonly autocomplete="off"></div>
+              <div class="col-md-4"><label>Email</label><input id="email" class="form-control" readonly autocomplete="email"></div>
+              <div class="col-md-4"><label>Telefone</label><input id="telefone" class="form-control" readonly autocomplete="tel"></div>
             </div>
-            <div class="mb-3"><label>Endereço</label><input id="endereco" class="form-control" readonly></div>
+            <div class="mb-3"><label>Endereço</label><input id="endereco" class="form-control" readonly autocomplete="off"></div>
 
             <hr>
 
             <!-- INFO -->
             <h5>Informações do Orçamento</h5>
             <div class="row g-3 mb-3">
-              <div class="col-md-4"><label>Solicitante</label><input id="solicitante" name="solicitante" class="form-control"></div>
+              <div class="col-md-4"><label>Solicitante</label><input id="solicitante" name="solicitante" class="form-control" autocomplete="name"></div>
               <div class="col-md-4"><label>Previsão de Entrega</label><input type="date" id="previsao_entrega" name="previsao_entrega" class="form-control"></div>
               <div class="col-md-4"><label>Vencimento</label><input type="date" id="vencimento" name="vencimento" class="form-control"></div>
             </div>
@@ -108,13 +139,13 @@
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <label>Forma de Pagamento</label>
-                <select id="forma_pagamento" name="forma_pagamento" class="form-select">
+                <select id="forma_pagamento" name="forma_pagamento" class="form-select" autocomplete="off">
                   <option value="">Selecione...</option>
                   <option>Pix</option><option>Cartão de Crédito</option><option>Cartão de Débito</option>
                   <option>Boleto</option><option>Transferência Bancária</option><option>Dinheiro</option><option>Outros</option>
                 </select>
               </div>
-              <div class="col-md-6"><label>Responsável</label><input id="responsavel" name="responsavel" class="form-control"></div>
+              <div class="col-md-6"><label>Responsável</label><input id="responsavel" name="responsavel" class="form-control" autocomplete="name"></div>
             </div>
 
             <hr>
@@ -143,7 +174,7 @@
 
             <div class="mb-3">
               <label>Observações</label>
-              <textarea id="observacao" name="observacao" class="form-control" rows="3"></textarea>
+              <textarea id="observacao" name="observacao" class="form-control" rows="3" autocomplete="off"></textarea>
             </div>
           </div>
 
@@ -156,58 +187,87 @@
     </div>
   </div>
 
-  <!-- Scripts -->
+  <footer class="bg-dark text-white text-center py-3 mt-5 fixed-bottom">
+  © 2025 {{empresa}} - Todos os direitos reservados.
+</footer>
+
+  <!-- JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
   $(function() {
     const modal = new bootstrap.Modal(document.getElementById('modalOrcamento'));
     let editandoId = null;
 
-    // Autocomplete cliente
-    // Autocomplete cliente
-$("#clienteInput").autocomplete({
-    source: "{% url 'autocomplete_cliente' %}",
+    console.log("📡 Script carregado com sucesso!");
 
-    minLength: 2,
-    focus: function(event, ui) {
-        $("#clienteInput").val(ui.item.label);
-        return false; // evita substituir o valor do input
+    // === AUTOCOMPLETE CLIENTE ===
+    $("#clienteInput").autocomplete({
+    source: function(request, response) {
+      $.getJSON("{% url 'core:autocomplete_cliente' %}", { term: request.term })
+        .done(function(data) {
+          console.log("🔍 Dados recebidos:", data);
+          response($.map(data, function(item) {
+            return {
+              label: item.label, // o que aparece na lista
+              value: item.label, // o que vai no input
+              id: item.id,
+              nome_fantasia: item.nome_fantasia,
+              cpf_cnpj: item.cpf_cnpj,
+              email: item.email,
+              telefone: item.telefone,
+              endereco: item.endereco
+            };
+          }));
+        });
     },
-    select: function(event, ui){
-        $("#clienteId").val(ui.item.id);
-        $("#clienteInput").val(ui.item.label);
-        $("#nome_fantasia").val(ui.item.nome_fantasia);
-        $("#cpf_cnpj").val(ui.item.cpf_cnpj);
-        $("#email").val(ui.item.email);
-        $("#telefone").val(ui.item.telefone);
-        $("#endereco").val(ui.item.endereco);
-        return false;
+    minLength: 1,
+    focus: function(event, ui) {
+      $("#clienteInput").val(ui.item.label);
+      return false;
+    },
+    select: function(event, ui) {
+      console.log("✅ Cliente selecionado:", ui.item);
+      $("#clienteId").val(ui.item.id);
+      $("#clienteInput").val(ui.item.label);
+      $("#nome_fantasia").val(ui.item.nome_fantasia);
+      $("#cpf_cnpj").val(ui.item.cpf_cnpj);
+      $("#email").val(ui.item.email);
+      $("#telefone").val(ui.item.telefone);
+      $("#endereco").val(ui.item.endereco);
+      return false;
+    },
+     
+    messages:{ // <-- aqui você pode desativar completamente
+      noResults: '',
+      results: function() {}
     }
-});
+    });
 
-// Autocomplete produto/serviço para inputs dinâmicos
-$(document).on('focus', '.nomeItem', function() {
-    $(this).autocomplete({
-        source: "{% url 'autocomplete_produto_servico' %}",
-        minLength: 2,
-        focus: function(event, ui) {
+
+    // === AUTOCOMPLETE PRODUTO/SERVIÇO ===
+    $(document).on('focus', '.nomeItem', function() {
+      if (!$(this).data("autocomplete-init")) {
+        $(this).data("autocomplete-init", true).autocomplete({
+          source: "{% url 'core:autocomplete_produto_servico' %}",
+          minLength: 2,
+          focus: function(event, ui) {
             $(this).val(ui.item.label);
             return false;
-        },
-        select: function(event, ui){
+          },
+          select: function(event, ui) {
             $(this).data('id', ui.item.id);
             $(this).data('tipo', ui.item.tipo);
             $(this).val(ui.item.label);
             $(this).closest('tr').find('.valorItem').val(ui.item.preco.toFixed(2));
             atualizarTotal();
             return false;
-        }
+          }
+        });
+      }
     });
-});
-
 
     // Novo orçamento
     $("#btnCriarOrcamento").click(() => {
@@ -284,8 +344,9 @@ $(document).on('focus', '.nomeItem', function() {
       };
 
       const url = editandoId
-        ? `/orcamentos/editar/${editandoId}/`
+        ? `/orcamentos/${editandoId}/editar/`
         : "{% url 'core:criar_orcamento' %}";
+
 
       $.post(url, dados)
         .done(res => {
@@ -298,6 +359,7 @@ $(document).on('focus', '.nomeItem', function() {
         })
         .fail(() => alert("Erro no servidor."));
     });
+
 
     // Editar orçamento existente
     $(document).on('click', '.btnEditar', function(){
@@ -337,6 +399,29 @@ $(document).on('focus', '.nomeItem', function() {
           alert("Erro ao carregar orçamento.");
         }
       });
+        $('#modalOrcamento').on('shown.bs.modal', function () {
+      const clienteId = $('#clienteId').val(); // <-- esse input hidden precisa ter o ID do cliente
+      if (clienteId) {
+        $.ajax({
+          url: `/autocomplete/cliente/?id=${clienteId}`,
+          method: 'GET',
+          success: function (data) {
+            if (data && data.length > 0) {
+              const c = data[0];
+              $('#nome_fantasia').val(c.nome_fantasia || '');
+              $('#cpf_cnpj').val(c.cpf_cnpj || '');
+              $('#email').val(c.email || '');
+              $('#telefone').val(c.telefone || '');
+              $('#endereco').val(c.endereco || '');
+            }
+          },
+          error: function (err) {
+            console.error("Erro ao carregar dados do cliente:", err);
+          }
+        });
+      }
+    });
+
     });
 
     // Excluir orçamento
@@ -356,6 +441,13 @@ $(document).on('focus', '.nomeItem', function() {
       })
       .fail(() => alert("Erro no servidor."));
     });
+     $.widget("ui.autocomplete", $.ui.autocomplete, {
+    __response: function(content) {
+      this._superApply(arguments);
+      this.liveRegion.text(''); // limpa mensagem de status
+    }
+  });
+
   });
   </script>
 </body>

@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = 'core'
 
@@ -14,11 +16,22 @@ urlpatterns = [
     path('configuracoes/', views.configuracoes, name='configuracoes'),
     path('suporte/', views.suporte, name='suporte'),
 
-    # AJAX - Clientes / Produtos / Serviços
-    path('cliente/criar/', views.criar_cliente_ajax, name='criar_cliente_ajax'),
-    path('produto/criar/', views.criar_produto_ajax, name='criar_produto_ajax'),
-    path('servico/criar/', views.criar_servico_ajax, name='criar_servico_ajax'),
+    # ---------------- CLIENTES ----------------
+    path('clientes/criar/', views.criar_cliente_ajax, name='criar_cliente_ajax'),
+    
+    path('clientes/edit/<int:id>/', views.editar_cliente_ajax, name='editar_cliente_ajax'),
+    path('clientes/excluir/<int:id>/', views.deletar_cliente_ajax, name='deletar_cliente_ajax'),
 
+
+    # ---------------- PRODUTOS ----------------
+    path('produtos/criar/', views.criar_produto_ajax, name='criar_produto_ajax'),
+    path('produtos/edit/<int:id>/', views.editar_produto_ajax, name='editar_produto_ajax'),
+    path('produtos/excluir/<int:id>/', views.excluir_produto_ajax, name='excluir_produto_ajax'),
+
+    # ---------------- SERVIÇOS ----------------
+    path('servicos/criar/', views.criar_servico_ajax, name='criar_servico_ajax'),
+    path('servicos/edit/<int:id>/', views.editar_servico_ajax, name='editar_servico_ajax'),
+    path('servicos/excluir/<int:id>/', views.excluir_servico_ajax, name='excluir_servico_ajax'),
 
 
     # Orçamentos principais
@@ -37,8 +50,11 @@ urlpatterns = [
 
     # Autocomplete
     path('autocomplete/cliente/', views.autocomplete_cliente, name='autocomplete_cliente'),
-    path('autocomplete/produto-servico/', views.autocomplete_produto_servico, name='autocomplete_produto_servico'),
+    path('autocomplete_produto_servico/', views.autocomplete_produto_servico, name='autocomplete_produto_servico'),
 
     # JSON para edição de orçamento (via AJAX)
     path('orcamentos/<int:id>/json/', views.orcamento_detalhe_json, name='orcamento_detalhe_json'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

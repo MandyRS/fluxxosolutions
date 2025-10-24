@@ -2,13 +2,13 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Suporte</title>
+  <title>Suporte - {{ empresa.nome }}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="{% url 'core:index' %}">Fluxxo Solutions</a>
+    <a class="navbar-brand" href="{% url 'core:index' %}">{{ empresa.nome }}</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -70,16 +70,16 @@
       <textarea class="form-control" id="descricao" name="descricao" rows="4" placeholder="Descreva seu problema ou dúvida..." required></textarea>
     </div>
 
-    <div class="mb-3">
-      <label for="arquivo" class="form-label">Foto ou Vídeo (opcional)</label>
-      <input class="form-control" type="file" id="arquivo" name="arquivo" accept="image/*,video/*" />
-    </div>
+
 
     <button type="submit" class="btn btn-primary">Enviar para WhatsApp</button>
   </form>
 
 </div>
 
+<footer class="bg-dark text-white text-center py-3 mt-5 fixed-bottom">
+  © 2025 {{ empresa.nome }} - Todos os direitos reservados.
+</footer>
 <script>
 document.getElementById('formSuporte').addEventListener('submit', function(event) {
   event.preventDefault();
@@ -100,7 +100,7 @@ document.getElementById('formSuporte').addEventListener('submit', function(event
   // ou implementar upload no servidor que envie depois, mas isso complica.
 
   // Número do WhatsApp do suporte (coloque seu número aqui com DDI e DDD, só números)
-  const numeroWhatsApp = '5511999999999';
+  const numeroWhatsApp = '5583921457757';
 
   // Abrir link do WhatsApp (web ou app)
   const url = `https://wa.me/${numeroWhatsApp}?text=${mensagem}`;

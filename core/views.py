@@ -7,6 +7,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from datetime import timedelta
+from . import views
+
 import json
 
 from .models import (
@@ -92,31 +94,80 @@ def get_empresa_do_usuario(user):
     except AttributeError:
         return None
 
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, F, FloatField
+from django.shortcuts import render
+import json
+from .models import Cliente, Produto, Servico, Orcamento, ItemOrcamento
+from django.db.models import Sum, F, FloatField
+from django.utils import timezone
+from datetime import timedelta
+import json
+from .models import Orcamento, ItemOrcamento
+
+
 @login_required
 def dashboard(request):
-    empresa_id = request.session.get('empresa_id')
-    if not empresa_id:
-        return redirect('selecionar_empresa')
+    empresa = get_empresa_do_usuario(request.user)
+    if not empresa:
+        return render(request, "core/erro.html", {"mensagem": "Nenhuma empresa associada."})
 
-    empresa = get_object_or_404(Empresa, id=empresa_id)
+    # Contadores básicos
+    clientes = empresa.cliente_set.count()
+    produtos = empresa.produto_set.count()
+    servicos = empresa.servico_set.count()
+    orcamentos = empresa.orcamento_set.all()
 
-    orcamentos = Orcamento.objects.filter(empresa=empresa)
-    clientes = Cliente.objects.filter(empresa=empresa)
-    produtos = Produto.objects.filter(empresa=empresa)
-    servicos = Servico.objects.filter(empresa=empresa)
+    # Soma total de todos os orçamentos (somando itens)
+    orcamentos_valor_total = (
+        ItemOrcamento.objects.filter(orcamento__empresa=empresa)
+        .aggregate(total=Sum(F("quantidade") * F("preco_unitario"), output_field=FloatField()))
+    )["total"] or 0
 
+    # --------------------------
+    # 🔔 Alerta de orçamentos com previsão de entrega próxima
+    # --------------------------
     hoje = timezone.now().date()
-    alerta_orcamentos = orcamentos.filter(previsao_entrega__lte=hoje + timedelta(days=3))
+    limite_alerta = hoje + timedelta(days=3)
+
+    alerta_orcamentos = orcamentos.filter(previsao_entrega__range=[hoje, limite_alerta])
+
+    # --------------------------
+    # 📊 Dados para os gráficos
+    # --------------------------
+    meses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    orcamentos_mes = []
+    orcamentos_valor_mes = []
+
+    for i in range(1, 13):
+        # quantidade de orçamentos por mês
+        orcs_mes = orcamentos.filter(criado_em__month=i)
+        orcamentos_mes.append(orcs_mes.count())
+
+        # soma dos valores dos itens por mês
+        valor_mes = (
+            ItemOrcamento.objects.filter(
+                orcamento__empresa=empresa,
+                orcamento__criado_em__month=i
+            ).aggregate(total=Sum(F("quantidade") * F("preco_unitario"), output_field=FloatField()))
+        )["total"] or 0
+
+        orcamentos_valor_mes.append(float(valor_mes))
 
     context = {
-        'empresa': empresa,
-        'orcamentos': orcamentos.count(),
-        'clientes': clientes.count(),
-        'produtos': produtos.count(),
-        'servicos': servicos.count(),
-        'alerta_orcamentos': alerta_orcamentos,
+        "empresa": empresa,
+        "clientes": clientes,
+        "produtos": produtos,
+        "servicos": servicos,
+        "orcamentos": orcamentos.count(),
+        "orcamentos_valor_total": round(orcamentos_valor_total, 2),
+        "alerta_orcamentos": alerta_orcamentos,
+        "meses": json.dumps(meses),
+        "orcamentos_mes": json.dumps(orcamentos_mes),
+        "orcamentos_valor_mes": json.dumps(orcamentos_valor_mes),
     }
-    return render(request, 'dashboard.html', context)
+
+    return render(request, "dashboard.html", context)
 
 
 # -----------------------------
@@ -395,7 +446,7 @@ def imprimir_orcamento(request, orcamento_id):
     orcamento = get_object_or_404(Orcamento, id=orcamento_id, empresa_id=empresa_id)
     itens = ItemOrcamento.objects.filter(orcamento=orcamento)
 
-    return render(request, 'orcamentos/imprimir.html', {
+    return render(request, 'imprimir.html', {
         'orcamento': orcamento,
         'itens': itens,
     })
@@ -460,53 +511,60 @@ from django.contrib.auth.decorators import login_required
 def utf8_json_response(data):
     return JsonResponse(data, safe=False, json_dumps_params={'ensure_ascii': False})
 
-@login_required
+
+from django.http import JsonResponse
+from django.db.models import Q
+from .models import Cliente
+
 def autocomplete_cliente(request):
     empresa_id = request.session.get('empresa_id')
     term = request.GET.get('term', '')
-    clientes = Cliente.objects.filter(
-        empresa_id=empresa_id,
-        razao_social__icontains=term
-    )[:10]
+    cliente_id = request.GET.get('id')
+
+    clientes = Cliente.objects.filter(empresa_id=empresa_id)
+
+    if cliente_id:
+        clientes = clientes.filter(id=cliente_id)
+    elif term:
+        clientes = clientes.filter(razao_social__icontains=term)
 
     results = [
         {
-            'id': c.id,
-            'label': c.razao_social,
-            'value': c.razao_social,
-            'nome_fantasia': c.nome_fantasia,
-            'cpf_cnpj': c.cpf_cnpj,
-            'telefone': c.telefone,
-            'email': c.email,
-            'endereco': c.endereco,
-            'cidade_uf': c.cidade_uf,
-            'cep': c.cep,
-        } 
+            "id": c.id,
+            "label": c.razao_social,
+            "nome_fantasia": c.nome_fantasia,
+            "cpf_cnpj": c.cpf_cnpj,
+            "email": c.email,
+            "telefone": c.telefone,
+            "endereco": c.endereco,
+        }
         for c in clientes
     ]
-
-    return utf8_json_response(results)
+    return JsonResponse(results, safe=False)
 
 
 @login_required
 def autocomplete_produto_servico(request):
-    term = request.GET.get('term', '')
+    termo = request.GET.get('term', '')
+    produtos = Produto.objects.filter(nome__icontains=termo)
+    servicos = Servico.objects.filter(nome__icontains=termo)
 
-    # Produtos e serviços
-    produtos = Produto.objects.filter(nome__icontains=term)[:5]
-    servicos = Servico.objects.filter(nome__icontains=term)[:5]
-
-    # Monta resultados de forma enxuta
-    results = [
-        {'id': obj.id, 'label': f'{emoji} {obj.nome}', 'preco': float(getattr(obj, 'preco', 0) or 0), 'tipo': tipo}
-        for obj, emoji, tipo in (
-            *( (p, '🛒', 'produto') for p in produtos ),
-            *( (s, '🧰', 'servico') for s in servicos )
-        )
-    ]
-
-    return utf8_json_response(results)
-
+    resultados = []
+    for p in produtos:
+        resultados.append({
+            "id": p.id,
+            "label": p.nome,
+            "tipo": "produto",
+            "preco": float(p.preco)
+        })
+    for s in servicos:
+        resultados.append({
+            "id": s.id,
+            "label": s.nome,
+            "tipo": "servico",
+            "preco": float(s.preco)
+        })
+    return JsonResponse(resultados, safe=False)
 
 
 # --------------------------------------------------------
@@ -524,14 +582,21 @@ def configuracoes(request):
         'produtos_list': Produto.objects.filter(empresa=empresa),
         'servicos_list': Servico.objects.filter(empresa=empresa),
     }
-
-    return render(request, 'configuracoes.html', context)
+    context['empresa'] = empresa
+    return render(request, 'configuracoes.html', context, ) 
 
 
 @login_required
 def suporte(request):
+    empresa = get_empresa_do_usuario(request.user)
     modulos = ['Financeiro', 'Dashboard', 'Orçamentos', 'Configurações', 'Relatórios', 'Outro']
-    return render(request, 'suporte.html', {'usuario': request.user, 'modulos': modulos})
+    
+    context = {
+    'usuario': request.user,
+    'modulos': modulos,
+    'empresa': empresa,
+}
+    return render(request, 'suporte.html', context)
 
 # --------------------------------------------------------
 # JSON DETALHE DO ORÇAMENTO (usado ao editar)
@@ -589,6 +654,7 @@ def editar_orcamento(request, orcamento_id):
         orcamento.responsavel = data.get('responsavel')
         orcamento.desconto = desconto
 
+        # Remove os itens antigos
         ItemOrcamento.objects.filter(orcamento=orcamento).delete()
 
         total = 0
@@ -610,12 +676,101 @@ def editar_orcamento(request, orcamento_id):
                 preco_unitario=valor
             )
 
-        orcamento.total = total - desconto
         orcamento.save()
         return JsonResponse({'status': 'ok'})
 
     except Exception as e:
         return JsonResponse({'status': 'erro', 'mensagem': str(e)})
-    
 
-    
+
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import Cliente, Produto, Servico
+
+# ---------------- CLIENTE ----------------
+def editar_cliente_ajax(request, id):
+    if request.method == 'POST':
+        cliente = get_object_or_404(Cliente, id=id)
+        nome = request.POST.get('nome')
+        email = request.POST.get('email')
+        if nome:
+            cliente.nome_fantasia = nome  # Ajuste para nome_fantasia se preferir
+        if email:
+            cliente.email = email
+        cliente.save()
+        return JsonResponse({'status': 'ok', 'mensagem': 'Cliente atualizado com sucesso!'})
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
+
+def deletar_cliente_ajax(request, id):
+    if request.method == 'POST':
+        cliente = get_object_or_404(Cliente, id=id)
+        cliente.delete()
+        return JsonResponse({'status': 'ok', 'mensagem': 'Cliente deletado com sucesso!'})
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
+
+
+# ---------------- PRODUTO ----------------
+def editar_produto_ajax(request, id):
+    if request.method == 'POST':
+        produto = get_object_or_404(Produto, id=id)
+        nome = request.POST.get('nome')
+        preco = request.POST.get('preco')
+        if nome:
+            produto.nome = nome
+        if preco:
+            produto.preco = preco
+        produto.save()
+        return JsonResponse({'status': 'ok', 'mensagem': 'Produto atualizado com sucesso!'})
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
+
+def excluir_produto_ajax(request, id):
+    if request.method == 'POST':
+        produto = get_object_or_404(Produto, id=id)
+        produto.delete()
+        return JsonResponse({'status': 'ok', 'mensagem': 'Produto excluído com sucesso!'})
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
+
+
+# ---------------- SERVIÇO ----------------
+def editar_servico_ajax(request, id):
+    if request.method == 'POST':
+        servico = get_object_or_404(Servico, id=id)
+        nome = request.POST.get('nome')
+        preco = request.POST.get('preco')
+        if nome:
+            servico.nome = nome
+        if preco:
+            servico.preco = preco
+        servico.save()
+        return JsonResponse({'status': 'ok', 'mensagem': 'Serviço atualizado com sucesso!'})
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
+
+def excluir_servico_ajax(request, id):
+    if request.method == 'POST':
+        servico = get_object_or_404(Servico, id=id)
+        servico.delete()
+        return JsonResponse({'status': 'ok', 'mensagem': 'Serviço excluído com sucesso!'})
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Empresa
+from .forms import EmpresaForm
+
+@login_required
+def configurar_empresa(request):
+    empresa_id = request.session.get('empresa_id')  # pega a empresa do usuário logado
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+
+    if request.method == 'POST':
+        form = EmpresaForm(request.POST, request.FILES, instance=empresa)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')  # ou outra página
+    else:
+        form = EmpresaForm(instance=empresa)
+
+    return render(request, 'configurar_empresa.html', {'form': form})
+
