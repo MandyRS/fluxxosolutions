@@ -17,42 +17,45 @@ urlpatterns = [
     path('suporte/', views.suporte, name='suporte'),
 
     # ---------------- CLIENTES ----------------
-    path('clientes/criar/', views.criar_cliente_ajax, name='criar_cliente_ajax'),
-    
-    path('clientes/edit/<int:id>/', views.editar_cliente_ajax, name='editar_cliente_ajax'),
-    path('clientes/excluir/<int:id>/', views.deletar_cliente_ajax, name='deletar_cliente_ajax'),
 
+    path('clientes/<int:id>/editar/', views.editar_cliente, name='editar_cliente'),
+    path('clientes/<int:id>/excluir/', views.excluir_cliente, name='excluir_cliente'),
+    path('clientes/criar/', views.criar_cliente_ajax, name='criar_cliente_ajax'),path('produtos/criar/', views.criar_produto_ajax, name='criar_produto_ajax'),
+  
+    # ---------------- PRODUTOS ----------------  
 
-    # ---------------- PRODUTOS ----------------
-    path('produtos/criar/', views.criar_produto_ajax, name='criar_produto_ajax'),
-    path('produtos/edit/<int:id>/', views.editar_produto_ajax, name='editar_produto_ajax'),
-    path('produtos/excluir/<int:id>/', views.excluir_produto_ajax, name='excluir_produto_ajax'),
+    path('produtos/<int:id>/editar/', views.editar_produto, name='editar_produto'),
+    path('produtos/<int:id>/excluir/', views.excluir_produto, name='excluir_produto'),
 
     # ---------------- SERVIÇOS ----------------
+
+    path('servicos/<int:id>/editar/', views.editar_servico_ajax, name='editar_servico_ajax'),
+    path('servicos/<int:id>/excluir/', views.excluir_servico_ajax, name='excluir_servico_ajax'),
     path('servicos/criar/', views.criar_servico_ajax, name='criar_servico_ajax'),
-    path('servicos/edit/<int:id>/', views.editar_servico_ajax, name='editar_servico_ajax'),
-    path('servicos/excluir/<int:id>/', views.excluir_servico_ajax, name='excluir_servico_ajax'),
 
+    # ---------------- ORÇAMENTOS ----------------
 
-    # Orçamentos principais
     path('orcamentos/', views.listar_orcamentos, name='listar_orcamentos'),
     path('orcamentos/criar/', views.criar_orcamento, name='criar_orcamento'),
     path('orcamentos/<int:orcamento_id>/obter/', views.obter_orcamento, name='obter_orcamento'),  # <-- nova
     path('orcamentos/<int:orcamento_id>/editar/', views.editar_orcamento, name='editar_orcamento'),
     path('orcamentos/<int:orcamento_id>/excluir/', views.excluir_orcamento, name='excluir_orcamento'),
     path('orcamentos/<int:orcamento_id>/imprimir/', views.imprimir_orcamento, name='imprimir_orcamento'),
-    # Itens de orçamento individuais
+    
+    #---------------- ITENS DO ORÇAMENTO ----------------
+
     path('orcamentos/<int:orcamento_id>/itens/adicionar/', views.adicionar_item, name='adicionar_item'),
     path('orcamentos/itens/<int:item_id>/editar/', views.editar_item, name='editar_item'),
     path('orcamentos/itens/<int:item_id>/excluir/', views.excluir_item, name='excluir_item'),
     path('orcamentos/itens/<int:item_id>/', views.detalhe_item, name='detalhe_item'),
 
-
-    # Autocomplete
+    # ---------------- AUTOCOMPLETE ----------------
+    
     path('autocomplete/cliente/', views.autocomplete_cliente, name='autocomplete_cliente'),
     path('autocomplete_produto_servico/', views.autocomplete_produto_servico, name='autocomplete_produto_servico'),
 
-    # JSON para edição de orçamento (via AJAX)
+    # ---------------- DETALHE ORÇAMENTO JSON ----------------
+    
     path('orcamentos/<int:id>/json/', views.orcamento_detalhe_json, name='orcamento_detalhe_json'),
 ]
 

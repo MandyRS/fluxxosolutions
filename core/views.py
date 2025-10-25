@@ -1,19 +1,21 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib import messages
-from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.db.models import Q
+from django.db.models import Sum, F, FloatField
 from django.utils import timezone
-from django.views.decorators.http import require_POST
 from datetime import timedelta
-from . import views
-
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 import json
-
+from . import views
 from .models import (
     Empresa, UserEmpresa, Cliente, Produto, Servico,
-    Orcamento, ItemOrcamento
+    Orcamento, ItemOrcamento, Servico,
 )
 from .forms import OrcamentoForm, ItemOrcamentoForm
 
@@ -60,7 +62,7 @@ def login_view(request):
 
     return render(request, 'login.html')
 
-
+@login_required
 def logout_view(request):
     logout(request)
     return redirect('core:index')
@@ -88,23 +90,17 @@ def selecionar_empresa(request):
 # -----------------------------
 # FUNÇÃO AUXILIAR
 # -----------------------------
+
 def get_empresa_do_usuario(user):
     try:
         return user.userempresa_set.first().empresa
     except AttributeError:
         return None
 
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, F, FloatField
-from django.shortcuts import render
-import json
-from .models import Cliente, Produto, Servico, Orcamento, ItemOrcamento
-from django.db.models import Sum, F, FloatField
-from django.utils import timezone
-from datetime import timedelta
-import json
-from .models import Orcamento, ItemOrcamento
 
+# -----------------------------
+# DASHBOARD
+# -----------------------------
 
 @login_required
 def dashboard(request):
@@ -170,20 +166,9 @@ def dashboard(request):
     return render(request, "dashboard.html", context)
 
 
-# -----------------------------
-# Criação rápida (via AJAX)
-# -----------------------------
-import json
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
-from .models import Cliente, Produto, Servico, Orcamento, ItemOrcamento
-from .forms import ItemOrcamentoForm
-
 
 # --------------------------------------------------------
-# CLIENTES, PRODUTOS E SERVIÇOS - CRIAÇÃO VIA AJAX
+# CLIENTES
 # --------------------------------------------------------
 
 @login_required
@@ -216,6 +201,54 @@ def criar_cliente_ajax(request):
         }
     })
 
+@login_required
+@require_POST
+def excluir_cliente(request, id):
+    if request.method == 'POST':
+        try:
+            cliente = Cliente.objects.get(id=id)
+            cliente.delete()
+            return JsonResponse({'status': 'ok', 'mensagem': 'Cliente excluído com sucesso'})
+        except Cliente.DoesNotExist:
+            return JsonResponse({'status': 'erro', 'mensagem': 'Cliente não encontrado'})
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
+
+@login_required
+@require_POST
+def editar_cliente(request, id):
+    cliente = Cliente.objects.get(id=id)
+    if request.method == 'GET':
+        # retornar os dados em JSON
+        return JsonResponse({
+            'razao_social': cliente.razao_social,
+            'nome_fantasia': cliente.nome_fantasia,
+            'cpf_cnpj': cliente.cpf_cnpj,
+            'telefone': cliente.telefone,
+            'email': cliente.email,
+            'endereco': cliente.endereco,
+            'cidade_uf': cliente.cidade_uf,
+            'cep': cliente.cep,
+        })
+    elif request.method == 'POST':
+        # atualizar os dados
+        cliente.razao_social = request.POST.get('razao_social')
+        cliente.nome_fantasia = request.POST.get('nome_fantasia')
+        cliente.cpf_cnpj = request.POST.get('cpf_cnpj')
+        cliente.telefone = request.POST.get('telefone')
+        cliente.email = request.POST.get('email')
+        cliente.endereco = request.POST.get('endereco')
+        cliente.cidade_uf = request.POST.get('cidade_uf')
+        cliente.cep = request.POST.get('cep')
+        cliente.save()
+        return JsonResponse({'status': 'ok', 'cliente': {
+            'id': cliente.id,
+            'razao_social': cliente.razao_social,
+            'nome_fantasia': cliente.nome_fantasia,
+            'cpf_cnpj': cliente.cpf_cnpj,
+            'telefone': cliente.telefone,
+        }})
+
+#--------------------------------------------------------
 
 @login_required
 @require_POST
@@ -245,6 +278,33 @@ def criar_produto_ajax(request):
 
 @login_required
 @require_POST
+def excluir_produto(request, id):
+    if request.method == 'POST':
+        try:
+            produto = Produto.objects.get(id=id)
+            produto.delete()
+            return JsonResponse({'status': 'ok', 'mensagem': 'Produto excluído com sucesso'})
+        except Produto.DoesNotExist:
+            return JsonResponse({'status': 'erro', 'mensagem': 'Produto não encontrado'})
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
+@login_required
+def editar_produto(request, id):
+    try:
+        produto = Produto.objects.get(id=id)
+        data = {
+            'codigo': produto.codigo,
+            'nome': produto.nome,
+            'descricao': produto.descricao,
+            'preco': str(produto.preco)
+        }
+        return JsonResponse(data)
+    except Produto.DoesNotExist:
+        return JsonResponse({'erro': 'Produto não encontrado'}, status=404)
+
+#--------------------------------------------------------
+
+@login_required
+@require_POST
 def criar_servico_ajax(request):
     empresa = get_empresa_do_usuario(request.user)
     if not empresa:
@@ -267,6 +327,33 @@ def criar_servico_ajax(request):
             'preco': str(servico.preco),
         }
     })
+
+
+    
+@login_required
+@require_POST
+def editar_servico_ajax(request, id):
+    try:
+        servico = Servico.objects.get(id=id)
+        data = {
+            'codigo': servico.codigo,
+            'nome': servico.nome,
+            'descricao': servico.descricao,
+            'preco': str(servico.preco)
+        }
+        return JsonResponse(data)
+    except Servico.DoesNotExist:
+        return JsonResponse({'erro': 'Serviço não encontrado'}, status=404)
+@login_required
+def excluir_servico_ajax(request, id):
+    if request.method == 'POST':
+        try:
+            servico = Servico.objects.get(id=id)
+            servico.delete()
+            return JsonResponse({'status': 'ok', 'mensagem': 'Serviço excluído com sucesso'})
+        except Servico.DoesNotExist:
+            return JsonResponse({'status': 'erro', 'mensagem': 'Serviço não encontrado'})
+    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
 
 
 # --------------------------------------------------------
@@ -387,10 +474,7 @@ def editar_orcamento(request, orcamento_id):
     except Exception as e:
         return JsonResponse({'status': 'erro', 'mensagem': str(e)})
 
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from .models import Orcamento, ItemOrcamento
-
+@login_required
 def obter_orcamento(request, orcamento_id):
     """Retorna os dados de um orçamento para edição (GET)."""
     if request.method != "GET":
@@ -451,6 +535,90 @@ def imprimir_orcamento(request, orcamento_id):
         'itens': itens,
     })
 
+@login_required
+def orcamento_detalhe_json(request, orcamento_id):
+    """Retorna os dados do orçamento em JSON para o modal de edição."""
+    empresa_id = request.session.get('empresa_id')
+    orcamento = get_object_or_404(Orcamento, id=orcamento_id, empresa_id=empresa_id)
+    itens = ItemOrcamento.objects.filter(orcamento=orcamento)
+
+    data = {
+        'id': orcamento.id,
+        'cliente_id': orcamento.cliente.id if orcamento.cliente else None,
+        'cliente_nome': orcamento.cliente.razao_social if orcamento.cliente else '',
+        'solicitante': orcamento.solicitante,
+        'previsao_entrega': orcamento.previsao_entrega.strftime('%Y-%m-%d') if orcamento.previsao_entrega else '',
+        'vencimento': orcamento.vencimento.strftime('%Y-%m-%d') if orcamento.vencimento else '',
+        'forma_pagamento': orcamento.forma_pagamento,
+        'responsavel': orcamento.responsavel,
+        'observacao': orcamento.observacao,
+        'desconto': float(orcamento.desconto or 0),
+        'itens': [
+            {
+                'id_item': i.produto.id if i.produto else (i.servico.id if i.servico else None),
+                'tipo': 'produto' if i.produto else 'servico',
+                'nome': i.produto.nome if i.produto else (i.servico.nome if i.servico else ''),
+                'quantidade': float(i.quantidade),
+                'valor_unitario': float(i.preco_unitario),
+            }
+            for i in itens
+        ]
+    }
+    return JsonResponse({'status': 'ok', 'orcamento': data})
+
+
+@login_required
+@require_POST
+def editar_orcamento(request, orcamento_id):
+    """Salva alterações em um orçamento existente."""
+    if request.method != "POST":
+        return JsonResponse({'status': 'erro', 'mensagem': 'Método não permitido (use POST)'}, status=405)
+
+    orcamento = get_object_or_404(Orcamento, id=orcamento_id, empresa_id=request.session.get('empresa_id'))
+    try:
+        data = request.POST
+        itens = json.loads(data.get('itens', '[]'))
+        desconto = float(data.get('desconto', 0) or 0)
+
+        orcamento.cliente_id = data.get('cliente')
+        orcamento.solicitante = data.get('solicitante')
+        orcamento.previsao_entrega = data.get('previsao_entrega') or None
+        orcamento.vencimento = data.get('vencimento') or None
+        orcamento.forma_pagamento = data.get('forma_pagamento')
+        orcamento.observacao = data.get('observacao')
+        orcamento.responsavel = data.get('responsavel')
+        orcamento.desconto = desconto
+
+        # Remove os itens antigos
+        ItemOrcamento.objects.filter(orcamento=orcamento).delete()
+
+        total = 0
+        for item in itens:
+            tipo = item.get('tipo')
+            qtd = float(item.get('quantidade') or 0)
+            valor = float(item.get('valor_unitario') or 0)
+            subtotal = qtd * valor
+            total += subtotal
+
+            model = Produto if tipo == 'produto' else Servico
+            ref = model.objects.filter(id=item.get('id_item')).first()
+
+            ItemOrcamento.objects.create(
+                orcamento=orcamento,
+                produto=ref if tipo == 'produto' else None,
+                servico=ref if tipo == 'servico' else None,
+                quantidade=qtd,
+                preco_unitario=valor
+            )
+
+        orcamento.save()
+        return JsonResponse({'status': 'ok'})
+
+    except Exception as e:
+        return JsonResponse({'status': 'erro', 'mensagem': str(e)})
+
+
+
 
 # --------------------------------------------------------
 # ITENS DE ORÇAMENTO INDIVIDUAIS (caso use via AJAX)
@@ -507,15 +675,12 @@ def detalhe_item(request, item_id):
 
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-
+@login_required
 def utf8_json_response(data):
     return JsonResponse(data, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
-from django.http import JsonResponse
-from django.db.models import Q
-from .models import Cliente
-
+@login_required
 def autocomplete_cliente(request):
     empresa_id = request.session.get('empresa_id')
     term = request.GET.get('term', '')
@@ -572,6 +737,7 @@ def autocomplete_produto_servico(request):
 # --------------------------------------------------------
 
 @login_required
+@require_POST
 def configuracoes(request):
     empresa = get_empresa_do_usuario(request.user)
     if not empresa:
@@ -597,180 +763,4 @@ def suporte(request):
     'empresa': empresa,
 }
     return render(request, 'suporte.html', context)
-
-# --------------------------------------------------------
-# JSON DETALHE DO ORÇAMENTO (usado ao editar)
-# --------------------------------------------------------
-
-def orcamento_detalhe_json(request, orcamento_id):
-    """Retorna os dados do orçamento em JSON para o modal de edição."""
-    empresa_id = request.session.get('empresa_id')
-    orcamento = get_object_or_404(Orcamento, id=orcamento_id, empresa_id=empresa_id)
-    itens = ItemOrcamento.objects.filter(orcamento=orcamento)
-
-    data = {
-        'id': orcamento.id,
-        'cliente_id': orcamento.cliente.id if orcamento.cliente else None,
-        'cliente_nome': orcamento.cliente.razao_social if orcamento.cliente else '',
-        'solicitante': orcamento.solicitante,
-        'previsao_entrega': orcamento.previsao_entrega.strftime('%Y-%m-%d') if orcamento.previsao_entrega else '',
-        'vencimento': orcamento.vencimento.strftime('%Y-%m-%d') if orcamento.vencimento else '',
-        'forma_pagamento': orcamento.forma_pagamento,
-        'responsavel': orcamento.responsavel,
-        'observacao': orcamento.observacao,
-        'desconto': float(orcamento.desconto or 0),
-        'itens': [
-            {
-                'id_item': i.produto.id if i.produto else (i.servico.id if i.servico else None),
-                'tipo': 'produto' if i.produto else 'servico',
-                'nome': i.produto.nome if i.produto else (i.servico.nome if i.servico else ''),
-                'quantidade': float(i.quantidade),
-                'valor_unitario': float(i.preco_unitario),
-            }
-            for i in itens
-        ]
-    }
-    return JsonResponse({'status': 'ok', 'orcamento': data})
-
-
-@login_required
-def editar_orcamento(request, orcamento_id):
-    """Salva alterações em um orçamento existente."""
-    if request.method != "POST":
-        return JsonResponse({'status': 'erro', 'mensagem': 'Método não permitido (use POST)'}, status=405)
-
-    orcamento = get_object_or_404(Orcamento, id=orcamento_id, empresa_id=request.session.get('empresa_id'))
-    try:
-        data = request.POST
-        itens = json.loads(data.get('itens', '[]'))
-        desconto = float(data.get('desconto', 0) or 0)
-
-        orcamento.cliente_id = data.get('cliente')
-        orcamento.solicitante = data.get('solicitante')
-        orcamento.previsao_entrega = data.get('previsao_entrega') or None
-        orcamento.vencimento = data.get('vencimento') or None
-        orcamento.forma_pagamento = data.get('forma_pagamento')
-        orcamento.observacao = data.get('observacao')
-        orcamento.responsavel = data.get('responsavel')
-        orcamento.desconto = desconto
-
-        # Remove os itens antigos
-        ItemOrcamento.objects.filter(orcamento=orcamento).delete()
-
-        total = 0
-        for item in itens:
-            tipo = item.get('tipo')
-            qtd = float(item.get('quantidade') or 0)
-            valor = float(item.get('valor_unitario') or 0)
-            subtotal = qtd * valor
-            total += subtotal
-
-            model = Produto if tipo == 'produto' else Servico
-            ref = model.objects.filter(id=item.get('id_item')).first()
-
-            ItemOrcamento.objects.create(
-                orcamento=orcamento,
-                produto=ref if tipo == 'produto' else None,
-                servico=ref if tipo == 'servico' else None,
-                quantidade=qtd,
-                preco_unitario=valor
-            )
-
-        orcamento.save()
-        return JsonResponse({'status': 'ok'})
-
-    except Exception as e:
-        return JsonResponse({'status': 'erro', 'mensagem': str(e)})
-
-
-
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from .models import Cliente, Produto, Servico
-
-# ---------------- CLIENTE ----------------
-def editar_cliente_ajax(request, id):
-    if request.method == 'POST':
-        cliente = get_object_or_404(Cliente, id=id)
-        nome = request.POST.get('nome')
-        email = request.POST.get('email')
-        if nome:
-            cliente.nome_fantasia = nome  # Ajuste para nome_fantasia se preferir
-        if email:
-            cliente.email = email
-        cliente.save()
-        return JsonResponse({'status': 'ok', 'mensagem': 'Cliente atualizado com sucesso!'})
-    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
-
-def deletar_cliente_ajax(request, id):
-    if request.method == 'POST':
-        cliente = get_object_or_404(Cliente, id=id)
-        cliente.delete()
-        return JsonResponse({'status': 'ok', 'mensagem': 'Cliente deletado com sucesso!'})
-    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
-
-
-# ---------------- PRODUTO ----------------
-def editar_produto_ajax(request, id):
-    if request.method == 'POST':
-        produto = get_object_or_404(Produto, id=id)
-        nome = request.POST.get('nome')
-        preco = request.POST.get('preco')
-        if nome:
-            produto.nome = nome
-        if preco:
-            produto.preco = preco
-        produto.save()
-        return JsonResponse({'status': 'ok', 'mensagem': 'Produto atualizado com sucesso!'})
-    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
-
-def excluir_produto_ajax(request, id):
-    if request.method == 'POST':
-        produto = get_object_or_404(Produto, id=id)
-        produto.delete()
-        return JsonResponse({'status': 'ok', 'mensagem': 'Produto excluído com sucesso!'})
-    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
-
-
-# ---------------- SERVIÇO ----------------
-def editar_servico_ajax(request, id):
-    if request.method == 'POST':
-        servico = get_object_or_404(Servico, id=id)
-        nome = request.POST.get('nome')
-        preco = request.POST.get('preco')
-        if nome:
-            servico.nome = nome
-        if preco:
-            servico.preco = preco
-        servico.save()
-        return JsonResponse({'status': 'ok', 'mensagem': 'Serviço atualizado com sucesso!'})
-    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
-
-def excluir_servico_ajax(request, id):
-    if request.method == 'POST':
-        servico = get_object_or_404(Servico, id=id)
-        servico.delete()
-        return JsonResponse({'status': 'ok', 'mensagem': 'Serviço excluído com sucesso!'})
-    return JsonResponse({'status': 'erro', 'mensagem': 'Método inválido'})
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .models import Empresa
-from .forms import EmpresaForm
-
-@login_required
-def configurar_empresa(request):
-    empresa_id = request.session.get('empresa_id')  # pega a empresa do usuário logado
-    empresa = get_object_or_404(Empresa, id=empresa_id)
-
-    if request.method == 'POST':
-        form = EmpresaForm(request.POST, request.FILES, instance=empresa)
-        if form.is_valid():
-            form.save()
-            return redirect('dashboard')  # ou outra página
-    else:
-        form = EmpresaForm(instance=empresa)
-
-    return render(request, 'configurar_empresa.html', {'form': form})
 

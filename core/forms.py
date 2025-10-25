@@ -1,5 +1,5 @@
 from django import forms
-from .models import Orcamento, ItemOrcamento
+from .models import Orcamento, ItemOrcamento, Empresa
 
 class OrcamentoForm(forms.ModelForm):
     class Meta:
@@ -30,10 +30,6 @@ class ItemOrcamentoForm(forms.ModelForm):
             raise forms.ValidationError("Informe somente produto ou serviço, não ambos.")
         return cleaned_data
 
-
-
-from django import forms
-from .models import Empresa
 
 class EmpresaForm(forms.ModelForm):
     class Meta:
